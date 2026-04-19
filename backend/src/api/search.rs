@@ -11,6 +11,8 @@ fn err(status: StatusCode, msg: impl ToString) -> (StatusCode, Json<ApiError>) {
     (status, Json(ApiError { error: msg.to_string() }))
 }
 
+const SCORE_THRESHOLD: f64 = 0.6;
+
 fn score_to_clarity(score: f64) -> (u32, ClarityLabel) {
     let clarity_score = (score * 100.0).round() as u32;
     let label = match clarity_score {
@@ -35,6 +37,7 @@ pub async fn search_handler(
     let results = hd_resp
         .results
         .into_iter()
+        .filter(|hit| hit.score.unwrap_or(0.0) >= SCORE_THRESHOLD)
         .map(|hit| {
             let score = hit.score.unwrap_or(0.0);
             let (clarity_score, clarity_label) = score_to_clarity(score);
