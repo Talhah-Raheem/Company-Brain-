@@ -27,8 +27,8 @@ export default function NavBar() {
           >
             <Waves className="h-5 w-5 text-flow" />
           </motion.div>
-          <span className="font-bold text-base tracking-tight text-foam group-hover:text-flow transition-colors duration-200">
-            The Safety Diver
+          <span className="font-display text-base tracking-tight text-foam group-hover:text-flow transition-colors duration-200">
+            The Safety <span className="italic">Diver</span>
           </span>
         </Link>
 

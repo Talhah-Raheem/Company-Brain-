@@ -1,0 +1,99 @@
+The Safety Diver — Judge Briefing
+                                                                                                                                                                            
+  The Problem                                                                                                                                                               
+                                                                                                                                                                            
+  AI agents are only as good as the knowledge they're built on. Most teams dump documents into a vector database and hope for the best. The problem: that corpus might      
+  contain exposed API keys, customer PII, or contradicting facts across documents. Your AI agent then confidently answers questions using toxic, wrong, or dangerous        
+  information.                                                                                                                                                              
+                                                            
+  Nobody is scanning the water before the fish swim in it.                                                                                                                  
+   
+  ---                                                                                                                                                                       
+  What We Built                                             
+                                                                                                                                                                            
+  The Safety Diver is a Knowledge Governance Layer — a purification plant that sits between your raw documents and your AI agent's knowledge base. Every document passes
+  through three filters before it's trusted.                                                                                                                                
+                                                            
+  The Pipeline                                                                                                                                                              
+                                                            
+  You upload a doc / URL
+          ↓                                                                                                                                                                 
+  Rust/Axum Backend (port 8080)
+          ↓                                                                                                                                                                 
+  [ Pollution Scanner ] ← regex scans for SSN, email, credit card,
+          ↓               phone, API keys, AWS secrets                                                                                                                      
+    Clean / Murky / Toxic?                                                                                                                                                  
+          ↓                                                                                                                                                                 
+    Toxic → BLOCKED     Clean/Murky → forwarded to Human Delta                                                                                                              
+                                ↓                                                                                                                                           
+                      Human Delta API stores + indexes it   
+                                ↓                                                                                                                                           
+                     Your AI agent searches clean knowledge 
+                                                                                                                                                                            
+  Three Core Features                                       
+                                                                                                                                                                            
+  1. Purified Ingestion (/ingest)                                                                                                                                           
+  Upload a PDF, CSV, or markdown — or paste a URL to crawl. The scanner runs in milliseconds. If it finds an AWS key or 3+ PII signals, the document is blocked and a "Toxic
+   Waters" overlay takes over the screen — visceral, impossible to miss. Clean and murky docs are forwarded to Human Delta with a full report of what was found and         
+  redacted.                                                 
+                                                                                                                                                                            
+  2. Diver Mode (/audit) — Phase 4, in progress                                                                                                                             
+  Type any term — "refund policy", "data retention", "salary". The diver uses Human Delta's filesystem API to grep your entire corpus for that term, clusters results by
+  source document, then compares snippets across documents to surface contradictions. Two docs say different things about the refund window? The Vortex Spinner surfaces it 
+  as a side-by-side diff.                                   
+                                                                                                                                                                            
+  3. Clarity Dashboard (/search) — Phase 5, pending                                                                                                                         
+  Search your knowledge base and every result comes back with a Water Clarity Score (0–100). The score is a weighted combination of source freshness and contradiction flags
+   from the audit cache. Crystal Clear sources glow cyan. Murky ones glow amber. You know exactly how much to trust each answer before you use it.                          
+                                                            
+  ---                                                                                                                                                                       
+  Tech Stack                                                
+            
+  ┌─────────────────┬───────────────────────────────────────┬───────────────────────────────────────────────────┐
+  │      Layer      │              Technology               │                        Why                        │                                                           
+  ├─────────────────┼───────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ Frontend        │ Next.js 15 + Tailwind + Framer Motion │ Fast, animated, demo-ready                        │                                                           
+  ├─────────────────┼───────────────────────────────────────┼───────────────────────────────────────────────────┤
+  │ Backend         │ Rust + Axum                           │ Zero-cost abstraction, memory-safe, fast          │                                                           
+  ├─────────────────┼───────────────────────────────────────┼───────────────────────────────────────────────────┤                                                           
+  │ Knowledge Layer │ Human Delta API                       │ Vector search, document storage, FS grep          │                                                           
+  ├─────────────────┼───────────────────────────────────────┼───────────────────────────────────────────────────┤                                                           
+  │ Scanner         │ Pure Rust regex                       │ No I/O, runs in microseconds, 11/11 tests passing │
+  └─────────────────┴───────────────────────────────────────┴───────────────────────────────────────────────────┘
+
+  ---
+  How Human Delta Powers This
+
+  Human Delta is not a peripheral integration — it is the entire knowledge storage and retrieval layer.
+  We have no database of our own. Every document, every search, every governance file lives in HD.
+
+  What we call and why:
+
+  ┌────────────────────────────┬───────────────────────────────────────────────────────────────────┐
+  │ API Call                   │ What it does for us                                               │
+  ├────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ POST /v1/documents         │ Stores uploaded files and makes them semantically searchable      │
+  ├────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ POST /v1/search            │ Vector search across the corpus — powers Audit and Search pages   │
+  ├────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ POST /v1/fs (read/write)   │ A persistent filesystem we use for governance records:            │
+  │                            │   /agent/canonical-sources.md  — canonical source declarations   │
+  │                            │   /agent/file-index.json       — filename → document ID map      │
+  │                            │   /agent/deleted-files.json    — tombstone list for deleted files │
+  ├────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ DELETE /v1/documents/{id}  │ Purges a document from the search index when a file is deleted    │
+  └────────────────────────────┴───────────────────────────────────────────────────────────────────┘
+
+  Why this fits the Human Delta sponsor track (Safety & Orchestration):
+
+  HD is the corpus your AI agents read from. The Safety Diver is the governance layer on top of it.
+  The full loop looks like this:
+
+    1. INGEST   — we scan the doc for PII/secrets, then push clean docs into HD via /v1/documents
+    2. AUDIT    — we query HD's vector search to cluster documents and surface contradictions
+    3. RESOLVE  — we write the canonical decision back into HD's filesystem (/agent/canonical-sources.md)
+    4. SEARCH   — HD returns ranked results; we tag each one with its governance status (Canonical / Rejected)
+
+  An AI agent consuming this corpus can now query /api/search and know — before it uses any result —
+  whether that source has been declared canonical, flagged as contradicted, or blocked for containing
+  toxic data. The Safety Diver turns HD from a raw document store into a governed knowledge base.
