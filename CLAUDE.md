@@ -179,6 +179,7 @@ Company-Brain-/
 - [x] Returns `AuditReport { query, clusters, contradictions }`
 - [x] Live tested: "refund policy" → 2 clusters (30-day vs 7-day policy), 1 contradiction detected
 - [x] Query-term pre-filter in `build_clusters`: snippets must contain every word from the query (case-insensitive, punctuation-stripped) before entering the cluster map — drops unrelated docs that HD returned on shared generic words like "policy"
+- [x] Near-duplicate contradiction detection: `build_clusters` keeps full HD text (was truncating to 200 chars and losing the differing content). `find_contradiction` runs two paths: (a) existing low-Jaccard `< 0.4` for different-wording contradictions, (b) new line-level diff for `0.5 < jaccard < 1.0` near-duplicates, ranked by fraction of words that differ — surfaces specific differing lines (e.g. `"6-8 business days Credit Card"` vs `"3-5 business days Credit Card"`) instead of the identical intro paragraph
 
 ---
 
