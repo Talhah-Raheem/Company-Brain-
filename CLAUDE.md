@@ -150,17 +150,17 @@ Company-Brain-/
 
 ---
 
-### Phase 3 — Purified Ingestion Route
-> Owner: 🔵 Backend only (frontend UI is ✅ done)  
-> **Do not touch:** `frontend/` directory
+### Phase 3 — Purified Ingestion Route ✅ COMPLETE
+> Owner: 🔵 Backend
 
-- [ ] Register `POST /api/ingest` in `main.rs` router
-- [ ] Handler in `api/ingest.rs`:
-  - Accept `multipart/form-data` (file) OR `application/json` `{ url }`
-  - Run `pollution::scanner::scan()` on text content
-  - If file: call `hd.upload_document()` only if severity != Toxic
-  - If URL: call `hd.crawl_index()` (no block — URLs can't be pre-scanned)
-  - Return `IngestResponse { report, forwarded, document_id?, index_id? }`
+- [x] `POST /api/ingest` registered in `main.rs`
+- [x] Branches on `Content-Type`: multipart → file path, JSON → URL path
+- [x] File path: UTF-8 scan → blocks Toxic, forwards Clean/Murky to HD `/v1/documents`
+- [x] URL path: calls HD `/v1/indexes` crawl (no pre-scan — always forward)
+- [x] Binary files (PDF/images) skip text scan, forward as-is
+- [x] Fixed `Severity` serialization bug: now "Clean"/"Murky"/"Toxic" (was lowercase — frontend mismatch)
+- [x] Returns `IngestResponse { report, forwarded, document_id?, index_id? }`
+- [x] Live tested: SSN+email file → Murky, forwarded=true, document_id returned from HD
 
 ---
 
