@@ -107,7 +107,7 @@ impl HumanDeltaClient {
 
     /// POST /v1/fs — write content to a path under /agent/
     pub async fn fs_write(&self, path: &str, content: &str) -> Result<serde_json::Value, HdError> {
-        let body = serde_json::json!({ "cmd": "write", "path": path, "content": content });
+        let body = serde_json::json!({ "op": "write", "path": path, "content": content });
         let resp = self
             .client
             .post(format!("{}/v1/fs", self.base_url))
@@ -118,9 +118,9 @@ impl HumanDeltaClient {
         Ok(self.check_response(resp).await?.json().await?)
     }
 
-    /// POST /v1/fs — read content from a path
+    /// POST /v1/fs — read content from a path. Strips HD's scope-metadata header line.
     pub async fn fs_read(&self, path: &str) -> Result<String, HdError> {
-        let body = serde_json::json!({ "cmd": "cat", "path": path });
+        let body = serde_json::json!({ "op": "read", "path": path });
         let resp = self
             .client
             .post(format!("{}/v1/fs", self.base_url))
@@ -129,10 +129,19 @@ impl HumanDeltaClient {
             .send()
             .await?;
         let val: serde_json::Value = self.check_response(resp).await?.json().await?;
-        Ok(val.get("output")
-            .and_then(|v| v.as_str())
-            .unwrap_or("")
-            .to_string())
+
+        if val.get("found").and_then(|v| v.as_bool()) == Some(false) {
+            return Ok(String::new());
+        }
+
+        let raw = val.get("content").and_then(|v| v.as_str()).unwrap_or("");
+        // HD prepends: <!-- scope=org pinned=... version=N updated=... -->\n
+        let stripped = raw
+            .strip_prefix("<!--")
+            .and_then(|r| r.split_once("-->"))
+            .map(|(_, rest)| rest.trim_start_matches('\n').to_string())
+            .unwrap_or_else(|| raw.to_string());
+        Ok(stripped)
     }
 
     /// POST /v1/fs with a raw shell command string e.g. "grep refund policy"

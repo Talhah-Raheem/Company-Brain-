@@ -13,23 +13,32 @@ fn err(status: StatusCode, msg: impl ToString) -> (StatusCode, Json<ApiError>) {
 
 const CANONICAL_PATH: &str = "/agent/canonical-sources.md";
 
-/// Removes the `## {term}` section and its lines from the markdown content.
+// Non-markdown format — HD's write pipeline mangles `##` headings (strips one `#`
+// and injects phantom separator lines), so we use plain-text delimiters.
+
+/// Removes the `[term: {term}]` block (from its header line to the next blank line + [term:).
 fn remove_section(content: &str, term: &str) -> String {
-    let heading = format!("## {term}");
+    let marker = format!("[term: {term}]");
     let mut out = Vec::new();
     let mut skip = false;
 
     for line in content.lines() {
-        if line.trim() == heading.trim() {
+        let trimmed = line.trim();
+        if trimmed == marker {
             skip = true;
             continue;
         }
-        if skip && line.starts_with("## ") {
+        if skip && trimmed.starts_with("[term:") {
             skip = false;
         }
         if !skip {
             out.push(line);
         }
+    }
+
+    // Trim trailing blank lines left behind by removal
+    while out.last().map(|l| l.trim().is_empty()).unwrap_or(false) {
+        out.pop();
     }
 
     out.join("\n")
@@ -42,17 +51,16 @@ pub async fn resolve_handler(
     let existing = state.hd.fs_read(CANONICAL_PATH).await.unwrap_or_default();
 
     let entry = format!(
-        "\n## {}\n- **Canonical:** {}\n- **Rejected:** {}\n",
+        "[term: {}]\ncanonical: {}\nrejected: {}\n",
         req.term, req.canonical_source, req.rejected_source
     );
 
-    // Remove any existing section for this term so re-resolving cleanly replaces it
     let stripped = remove_section(&existing, &req.term);
 
     let updated = if stripped.trim().is_empty() {
-        format!("# Canonical Sources\n{entry}")
+        format!("Canonical Sources — authoritative records for AI agents\n\n{entry}")
     } else {
-        format!("{stripped}{entry}")
+        format!("{}\n\n{entry}", stripped.trim_end())
     };
 
     state

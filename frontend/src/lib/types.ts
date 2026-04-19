@@ -96,3 +96,15 @@ export interface ResolveResponse {
   success: boolean;
   message: string;
 }
+
+// ── Governance ────────────────────────────────────────────────────────────────
+
+export interface GovernanceEntry {
+  term: string;
+  canonical: string;
+  rejected: string;
+}
+
+export interface GovernanceResponse {
+  entries: GovernanceEntry[];
+}

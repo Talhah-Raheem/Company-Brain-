@@ -214,9 +214,9 @@ Company-Brain-/
 > Priority order — do the top items first, drop the bottom ones if time runs out.
 
 ### High Priority (demo impact)
-- [ ] 🟢 **Governance Log page** (`/governance`) — read `/agent/canonical-sources.md` from HD and display all canonical declarations in a clean UI. This is the judge money moment — proves the write actually happened and the corpus is governed.
-- [ ] 🔵 `GET /api/governance` — reads `/agent/canonical-sources.md` via HD `fs_read`, parses and returns structured `{ term, canonical, rejected }[]`
-- [ ] 🟢 **Audit wave shimmer skeletons** — search has them, audit doesn't. Add same skeleton pattern while diving.
+- [x] 🟢 **Governance Log page** (`/governance`) — read `/agent/canonical-sources.md` from HD and display all canonical declarations in a clean UI. This is the judge money moment — proves the write actually happened and the corpus is governed.
+- [x] 🔵 `GET /api/governance` — reads `/agent/canonical-sources.md` via HD `fs_read`, parses and returns structured `{ term, canonical, rejected }[]`
+- [x] 🟢 **Audit wave shimmer skeletons** — search has them, audit doesn't. Add same skeleton pattern while diving.
 
 ### Medium Priority (polish)
 - [ ] 🟢 **Empty state on audit** — if no clusters found at all (not just no contradictions), show a "Nothing indexed yet" message instead of just the clear waters panel

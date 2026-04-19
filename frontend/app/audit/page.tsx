@@ -4,14 +4,48 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScanSearch, ArrowRight, BookOpen, Swords, ShieldCheck, Loader2 } from "lucide-react";
 import GlassPanel from "@/src/components/water/GlassPanel";
-import VortexSpinner from "@/src/components/water/VortexSpinner";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
 import { audit, resolve } from "@/src/lib/api";
 import type { AuditReport, Contradiction } from "@/src/lib/types";
 
-type Status = "idle" | "diving" | "done" | "error";
 type ResolveStatus = "idle" | "resolving" | "resolved";
+
+function ShimmerBar({ width = "w-full", delay = 0 }: { width?: string; delay?: number }) {
+  return (
+    <div className={`relative h-3 rounded-full bg-surface/40 overflow-hidden ${width}`}>
+      <motion.div
+        className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+        animate={{ x: ["-100%", "300%"] }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay }}
+      />
+    </div>
+  );
+}
+
+function DivingSkeleton({ delay = 0 }: { delay?: number }) {
+  return (
+    <div className="rounded-2xl border border-toxic/15 bg-current/40 p-6 space-y-4">
+      <ShimmerBar width="w-1/3" delay={delay} />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl bg-surface/20 p-4 space-y-2">
+          <ShimmerBar width="w-2/3" delay={delay + 0.1} />
+          <ShimmerBar delay={delay + 0.15} />
+          <ShimmerBar width="w-5/6" delay={delay + 0.2} />
+        </div>
+        <div className="rounded-xl bg-surface/20 p-4 space-y-2">
+          <ShimmerBar width="w-2/3" delay={delay + 0.15} />
+          <ShimmerBar delay={delay + 0.2} />
+          <ShimmerBar width="w-5/6" delay={delay + 0.25} />
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <ShimmerBar width="w-32" delay={delay + 0.3} />
+        <ShimmerBar width="w-32" delay={delay + 0.35} />
+      </div>
+    </div>
+  );
+}
 
 function ContradictionCard({ c }: { c: Contradiction }) {
   const [resolveStatus, setResolveStatus] = useState<ResolveStatus>("idle");
@@ -162,12 +196,14 @@ export default function AuditPage() {
       <AnimatePresence>
         {status === "diving" && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex justify-center py-16"
+            className="space-y-4"
           >
-            <VortexSpinner size={100} label="Diving deep…" />
+            <p className="text-xs font-semibold tracking-widest uppercase text-foam/30">Diving deep…</p>
+            <DivingSkeleton delay={0} />
+            <DivingSkeleton delay={0.1} />
           </motion.div>
         )}
       </AnimatePresence>

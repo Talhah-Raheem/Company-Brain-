@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Waves, Upload, ScanSearch, LayoutDashboard } from "lucide-react";
+import { Waves, Upload, ScanSearch, LayoutDashboard, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 const links = [
-  { href: "/ingest", label: "Upload",  icon: Upload },
-  { href: "/audit",  label: "Audit",   icon: ScanSearch },
-  { href: "/search", label: "Search",  icon: LayoutDashboard },
+  { href: "/ingest",     label: "Upload",     icon: Upload },
+  { href: "/audit",      label: "Audit",      icon: ScanSearch },
+  { href: "/search",     label: "Search",     icon: LayoutDashboard },
+  { href: "/governance", label: "Governance", icon: ShieldCheck },
 ];
 
 export default function NavBar() {
