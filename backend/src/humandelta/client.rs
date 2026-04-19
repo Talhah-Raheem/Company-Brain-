@@ -144,6 +144,19 @@ impl HumanDeltaClient {
         Ok(stripped)
     }
 
+    /// POST /v1/fs — delete a file at the given path
+    pub async fn fs_delete(&self, path: &str) -> Result<serde_json::Value, HdError> {
+        let body = serde_json::json!({ "op": "delete", "path": path });
+        let resp = self
+            .client
+            .post(format!("{}/v1/fs", self.base_url))
+            .header("Authorization", self.auth_header())
+            .json(&body)
+            .send()
+            .await?;
+        Ok(self.check_response(resp).await?.json().await?)
+    }
+
     /// POST /v1/fs with a raw shell command string e.g. "grep refund policy"
     pub async fn fs_cmd(&self, cmd: &str) -> Result<serde_json::Value, HdError> {
         let body = serde_json::json!({ "cmd": cmd });

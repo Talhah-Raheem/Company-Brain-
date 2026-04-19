@@ -78,3 +78,24 @@ pub async fn file_content_handler(
 
     Ok(Json(FileContentResponse { path: path.clone(), content }))
 }
+
+pub async fn delete_file_handler(
+    State(state): State<AppState>,
+    Query(params): Query<HashMap<String, String>>,
+) -> ApiResult<serde_json::Value> {
+    let path = params
+        .get("path")
+        .ok_or_else(|| err(StatusCode::BAD_REQUEST, "missing path param"))?;
+
+    if !path.starts_with("/uploads/") {
+        return Err(err(StatusCode::BAD_REQUEST, "invalid path"));
+    }
+
+    let result = state
+        .hd
+        .fs_delete(path)
+        .await
+        .map_err(|e| err(StatusCode::BAD_GATEWAY, e))?;
+
+    Ok(Json(result))
+}

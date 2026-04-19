@@ -4,13 +4,13 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Link2, CloudUpload, FileText, X,
-  CheckCircle2, AlertTriangle, Biohazard, ArrowRight, RefreshCw, Eye,
+  CheckCircle2, AlertTriangle, Biohazard, ArrowRight, RefreshCw, Eye, Trash2,
 } from "lucide-react";
 import GlassPanel from "@/src/components/water/GlassPanel";
 import WaterClarityBadge from "@/src/components/water/WaterClarityBadge";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
-import { ingestFile, ingestUrl, listFiles, getFileContent } from "@/src/lib/api";
+import { ingestFile, ingestUrl, listFiles, getFileContent, deleteFile } from "@/src/lib/api";
 import type { IngestResponse, FileEntry, FileContentResponse } from "@/src/lib/types";
 import { cn } from "@/src/lib/utils";
 
@@ -45,6 +45,7 @@ export default function IngestPage() {
   const [corpusLoading,    setCorpusLoading]    = useState(false);
   const [viewingFile,      setViewingFile]      = useState<FileContentResponse | null>(null);
   const [viewLoading,      setViewLoading]      = useState(false);
+  const [deletingFile,     setDeletingFile]     = useState<string | null>(null);
   const dropRef = useRef<HTMLDivElement>(null);
 
   const fetchCorpus = useCallback(async () => {
@@ -60,6 +61,18 @@ export default function IngestPage() {
   }, []);
 
   useEffect(() => { fetchCorpus(); }, [fetchCorpus]);
+
+  const handleDelete = async (path: string) => {
+    setDeletingFile(path);
+    try {
+      await deleteFile(path);
+      setCorpusFiles(prev => prev ? prev.filter(f => f.path !== path) : prev);
+    } catch {
+      // silently ignore — file may already be gone
+    } finally {
+      setDeletingFile(null);
+    }
+  };
 
   const openFile = async (file: FileEntry) => {
     setViewLoading(true);
@@ -351,10 +364,26 @@ export default function IngestPage() {
               <span className="flex-1 text-sm text-foam/80 truncate font-mono">{f.name}</span>
               <button
                 onClick={() => openFile(f)}
-                className="text-foam/30 hover:text-flow transition-colors"
+                className="p-1.5 rounded-lg hover:bg-flow/10 text-foam/30 hover:text-flow transition-colors"
                 title="View content"
               >
-                <Eye className="h-4 w-4" />
+                <Eye className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => handleDelete(f.path)}
+                disabled={deletingFile === f.path}
+                className="p-1.5 rounded-lg hover:bg-toxic/10 text-foam/30 hover:text-toxic transition-colors disabled:opacity-40"
+                title="Delete file"
+              >
+                {deletingFile === f.path ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="h-3.5 w-3.5 border border-toxic/40 border-t-toxic rounded-full"
+                  />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
               </button>
             </div>
           ))}

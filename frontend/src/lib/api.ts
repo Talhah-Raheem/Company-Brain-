@@ -38,3 +38,7 @@ export const listFiles      = ()                        => getJson<FilesResponse
 export const resolve        = (req: ResolveRequest)     => postJson<ResolveResponse>("/api/audit/resolve", req);
 export const getFileContent = (path: string) => getJson<FileContentResponse>(`/api/files/content?path=${encodeURIComponent(path)}`);
 export const getGovernance  = ()              => getJson<GovernanceResponse>("/api/governance");
+export const deleteFile     = (path: string)  => {
+  const res = fetch(`${BASE}/api/files?path=${encodeURIComponent(path)}`, { method: "DELETE" });
+  return res.then(r => { if (!r.ok) throw new Error(`${r.status}`); });
+};
