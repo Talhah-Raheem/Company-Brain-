@@ -25,6 +25,7 @@ pub struct SearchRequest {
 pub struct SearchResult {
     #[serde(rename = "text", alias = "content")]
     pub content: String,
+    #[serde(rename = "source_url")]           // HD sends source_url, not source
     pub source: Option<String>,
     pub score: Option<f64>,
     #[serde(flatten)]
@@ -36,6 +37,31 @@ pub struct SearchResponse {
     pub results: Vec<SearchResult>,
     #[serde(flatten)]
     pub extra: serde_json::Value,
+}
+
+// ── Search API response types (our endpoint → frontend) ──────────────────────
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ClarityLabel {
+    Crystal,
+    Clear,
+    Murky,
+    Toxic,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchResultItem {
+    pub content: String,
+    pub source: String,
+    pub similarity: f64,
+    pub clarity_score: u32,
+    pub clarity_label: ClarityLabel,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ApiSearchResponse {
+    pub results: Vec<SearchResultItem>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

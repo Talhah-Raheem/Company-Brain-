@@ -181,16 +181,15 @@ Company-Brain-/
 
 ---
 
-### Phase 5 — Clarity Dashboard / Search Route
-> Owner: 🔵 Backend only (frontend UI is ✅ done)  
-> **Do not touch:** `frontend/` directory
+### Phase 5 — Clarity Dashboard / Search Route ✅ COMPLETE
+> Owner: 🔵 Backend + 🟢 Frontend model additions
 
-- [ ] Register `POST /api/search` in `main.rs` router
-- [ ] Handler in `api/search.rs`:
-  - Accept `{ query: String, limit?: u32 }`
-  - Call `hd.search(SearchRequest { query, limit })`
-  - For each result: compute `clarity_score` (0–100) and `clarity_label`
-  - Return `SearchResponse { results: Vec<SearchResultItem> }`
+- [x] `ClarityLabel` enum, `SearchResultItem`, `ApiSearchResponse` added to `models/mod.rs`
+- [x] `SearchResult.source` field renamed to `source_url` via `#[serde(rename = "source_url")]`
+- [x] `api/search.rs` handler: calls `hd.search()`, maps each hit to `SearchResultItem`
+- [x] Clarity scoring: HD score × 100 → 80+ Crystal, 60–79 Clear, 40–59 Murky, <40 Toxic
+- [x] `POST /api/search` registered in `main.rs`
+- [x] `cargo build` passes — 0 errors, 0 new warnings
 
 ---
 

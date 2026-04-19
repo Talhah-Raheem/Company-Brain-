@@ -44,6 +44,7 @@ async fn main() {
         .route("/health", get(health))
         .route("/api/ingest", post(api::ingest::ingest_handler))
         .route("/api/audit", post(api::audit::audit_handler))
+        .route("/api/search", post(api::search::search_handler))
         .with_state(state)
         .layer(cors);
 
