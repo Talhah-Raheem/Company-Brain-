@@ -196,11 +196,13 @@ Company-Brain-/
 ### Phase 6 — Demo Prep & Final Polish
 > Owner: 🔵🟢 Both
 
-- [ ] 🔵 Seed demo data: upload docs with planted PII + contradictions via `/api/ingest`
+- [x] 🔵 Seed demo data: uploaded product_overview (Clean), refund_policy_v1/v2 (Murky, contradicting), employee_records (Toxic — blocked)
 - [x] 🟢 Error states: "Toxic Water" full-screen overlay for Toxic severity on ingest
-- [ ] 🟢 Loading skeletons (wave shimmer) on search results
-- [ ] 🔵🟢 End-to-end smoke test: ingest → audit → search full flow
-- [ ] 🔵🟢 Verify CORS, env vars, and ports are correct in production build
+- [x] 🟢 Loading skeletons (wave shimmer) on search results
+- [x] 🟢 Knowledge Base files panel on search page — shows indexed files via GET /api/files
+- [x] 🔵 GET /api/files endpoint — lists /uploads via HD fs shell
+- [x] 🔵🟢 End-to-end smoke test: ingest → audit → search full flow — all passing
+- [x] 🔵🟢 Verify CORS, env vars, and ports are correct in production build
 
 ---
 

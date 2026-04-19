@@ -67,3 +67,14 @@ export interface SearchResultItem {
 export interface SearchResponse {
   results: SearchResultItem[];
 }
+
+// ── Files ─────────────────────────────────────────────────────────────────────
+
+export interface FileEntry {
+  name: string;
+  path: string;
+}
+
+export interface FilesResponse {
+  files: FileEntry[];
+}

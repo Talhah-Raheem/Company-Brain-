@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ExternalLink, Droplets, AlertTriangle, Biohazard, Sparkles } from "lucide-react";
+import { Search, ExternalLink, Droplets, AlertTriangle, Biohazard, Sparkles, FileText } from "lucide-react";
 import GlassPanel from "@/src/components/water/GlassPanel";
 import WaterClarityBadge from "@/src/components/water/WaterClarityBadge";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
-import { search } from "@/src/lib/api";
-import type { SearchResultItem, ClarityLabel, PollutionSeverity } from "@/src/lib/types";
+import { search, listFiles } from "@/src/lib/api";
+import type { SearchResultItem, ClarityLabel, PollutionSeverity, FileEntry } from "@/src/lib/types";
 
 type Status = "idle" | "searching" | "done" | "error";
 
@@ -33,6 +33,35 @@ const clarityIcons = {
   toxic:   Biohazard,
 };
 
+function SkeletonCard() {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-current/40 p-6 space-y-4 overflow-hidden">
+      <div className="relative h-3 rounded-full bg-surface/40 overflow-hidden w-3/4">
+        <motion.div
+          className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          animate={{ x: ["-100%", "300%"] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </div>
+      <div className="relative h-3 rounded-full bg-surface/40 overflow-hidden w-full">
+        <motion.div
+          className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          animate={{ x: ["-100%", "300%"] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
+        />
+      </div>
+      <div className="relative h-3 rounded-full bg-surface/40 overflow-hidden w-2/3">
+        <motion.div
+          className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          animate={{ x: ["-100%", "300%"] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+        />
+      </div>
+      <div className="h-1.5 rounded-full bg-surface/40 w-full mt-2" />
+    </div>
+  );
+}
+
 function ScoreBar({ score, label }: { score: number; label: ClarityLabel }) {
   return (
     <div className="flex items-center gap-3">
@@ -51,32 +80,24 @@ function ScoreBar({ score, label }: { score: number; label: ClarityLabel }) {
 
 function ResultCard({ item }: { item: SearchResultItem }) {
   const Icon = clarityIcons[item.clarity_label];
-  const glow = item.clarity_label === "toxic"   ? "toxic"   :
-               item.clarity_label === "murky"   ? "murky"   : "clarity";
+  const glow = item.clarity_label === "toxic" ? "toxic" :
+               item.clarity_label === "murky" ? "murky" : "clarity";
 
   return (
     <GlassPanel glow={glow as "toxic" | "murky" | "clarity"} className="p-6 space-y-4">
-      {/* Content snippet */}
-      <p className="text-sm text-foam/80 leading-relaxed line-clamp-3">
-        {item.content}
-      </p>
+      <p className="text-sm text-foam/80 leading-relaxed line-clamp-3">{item.content}</p>
 
-      {/* Meta row */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        {/* Source */}
         <div className="flex items-center gap-1.5 text-xs text-foam/35 min-w-0">
           <ExternalLink className="h-3 w-3 shrink-0" />
-          <span className="truncate">{item.source}</span>
+          <span className="truncate">{item.source || "unknown"}</span>
         </div>
-
-        {/* Similarity */}
         <div className="flex items-center gap-1.5 text-xs text-foam/35 shrink-0">
           <Sparkles className="h-3 w-3" />
           {(item.similarity * 100).toFixed(1)}% match
         </div>
       </div>
 
-      {/* Clarity score */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-foam/40">
@@ -91,11 +112,41 @@ function ResultCard({ item }: { item: SearchResultItem }) {
   );
 }
 
+function FilesPanel({ files }: { files: FileEntry[] }) {
+  if (files.length === 0) return null;
+  return (
+    <GlassPanel className="p-5 space-y-3">
+      <p className="text-xs font-semibold tracking-widest uppercase text-foam/30">
+        Knowledge Base — {files.length} file{files.length !== 1 ? "s" : ""} indexed
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {files.map((f, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.05 }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface/40 border border-white/10 text-xs text-foam/60"
+          >
+            <FileText className="h-3 w-3 text-flow/60" />
+            {f.name}
+          </motion.div>
+        ))}
+      </div>
+    </GlassPanel>
+  );
+}
+
 export default function SearchPage() {
   const [query,   setQuery]   = useState("");
   const [status,  setStatus]  = useState<Status>("idle");
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [error,   setError]   = useState("");
+  const [files,   setFiles]   = useState<FileEntry[]>([]);
+
+  useEffect(() => {
+    listFiles().then(r => setFiles(r.files)).catch(() => {});
+  }, []);
 
   const run = async () => {
     if (!query.trim()) return;
@@ -113,7 +164,7 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-10">
+    <div className="max-w-3xl mx-auto space-y-8">
 
       {/* ── Header ── */}
       <div>
@@ -122,6 +173,9 @@ export default function SearchPage() {
           Every result carries a Water Clarity Score — trust scores before you consume.
         </p>
       </div>
+
+      {/* ── Indexed files ── */}
+      <FilesPanel files={files} />
 
       {/* ── Search bar ── */}
       <GlassPanel glow="clarity" className="p-2 flex items-center gap-3">
@@ -163,6 +217,24 @@ export default function SearchPage() {
         )}
       </AnimatePresence>
 
+      {/* ── Skeletons ── */}
+      <AnimatePresence>
+        {status === "searching" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-4"
+          >
+            {[0, 1, 2].map(i => (
+              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
+                <SkeletonCard />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Results ── */}
       <AnimatePresence>
         {status === "done" && (
@@ -174,7 +246,7 @@ export default function SearchPage() {
             className="space-y-4"
           >
             <p className="text-xs font-semibold tracking-widest uppercase text-foam/30">
-              {results.length} result{results.length !== 1 ? "s" : ""} for "{query}"
+              {results.length} result{results.length !== 1 ? "s" : ""} for &quot;{query}&quot;
             </p>
 
             {results.length > 0 ? (
