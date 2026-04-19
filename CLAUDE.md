@@ -199,7 +199,7 @@ Company-Brain-/
 > Owner: 🔵🟢 Both
 
 - [ ] 🔵 Seed demo data: upload docs with planted PII + contradictions via `/api/ingest`
-- [ ] 🟢 Error states: "Toxic Water" full-screen overlay for Toxic severity on ingest
+- [x] 🟢 Error states: "Toxic Water" full-screen overlay for Toxic severity on ingest
 - [ ] 🟢 Loading skeletons (wave shimmer) on search results
 - [ ] 🔵🟢 End-to-end smoke test: ingest → audit → search full flow
 - [ ] 🔵🟢 Verify CORS, env vars, and ports are correct in production build
