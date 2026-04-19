@@ -144,6 +144,18 @@ impl HumanDeltaClient {
         Ok(stripped)
     }
 
+    /// DELETE /v1/documents/{id} — remove a document from the search index
+    pub async fn delete_document(&self, id: &str) -> Result<(), HdError> {
+        let resp = self
+            .client
+            .delete(format!("{}/v1/documents/{id}", self.base_url))
+            .header("Authorization", self.auth_header())
+            .send()
+            .await?;
+        self.check_response(resp).await?;
+        Ok(())
+    }
+
     /// POST /v1/fs — delete a file at the given path
     pub async fn fs_delete(&self, path: &str) -> Result<serde_json::Value, HdError> {
         let body = serde_json::json!({ "op": "delete", "path": path });

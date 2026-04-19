@@ -11,6 +11,8 @@ use crate::{
     AppState,
 };
 
+const FILE_INDEX_PATH: &str = "/agent/file-index.json";
+
 type ApiResult<T> = Result<Json<T>, (StatusCode, Json<ApiError>)>;
 
 fn err(status: StatusCode, msg: impl ToString) -> (StatusCode, Json<ApiError>) {
@@ -86,7 +88,7 @@ async fn handle_file(
 
     let result = state
         .hd
-        .upload_document(filename, content_type, bytes)
+        .upload_document(filename.clone(), content_type, bytes)
         .await
         .map_err(|e| err(StatusCode::BAD_GATEWAY, e))?;
 
@@ -96,12 +98,31 @@ async fn handle_file(
         .and_then(|v| v.as_str())
         .map(str::to_string);
 
+    // Best-effort: persist filename → document_id so delete can purge the search index
+    if let Some(ref doc_id) = document_id {
+        let _ = record_document_id(&state, &filename, doc_id).await;
+    }
+
     Ok(Json(IngestResponse {
         report,
         forwarded: true,
         document_id,
         index_id: None,
     }))
+}
+
+/// Reads /agent/file-index.json, adds/updates filename → doc_id, writes back.
+async fn record_document_id(state: &AppState, filename: &str, doc_id: &str) -> Result<(), ()> {
+    let raw = state.hd.fs_read(FILE_INDEX_PATH).await.unwrap_or_default();
+    let mut map: serde_json::Map<String, serde_json::Value> = if raw.is_empty() {
+        serde_json::Map::new()
+    } else {
+        serde_json::from_str(&raw).unwrap_or_default()
+    };
+    map.insert(filename.to_string(), serde_json::Value::String(doc_id.to_string()));
+    let json = serde_json::to_string(&map).map_err(|_| ())?;
+    state.hd.fs_write(FILE_INDEX_PATH, &json).await.map_err(|_| ())?;
+    Ok(())
 }
 
 async fn handle_url(

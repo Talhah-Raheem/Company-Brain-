@@ -5,6 +5,8 @@ use serde::Serialize;
 
 use crate::{models::ApiError, AppState};
 
+const FILE_INDEX_PATH: &str = "/agent/file-index.json";
+
 type ApiResult<T> = Result<Json<T>, (StatusCode, Json<ApiError>)>;
 
 fn err(status: StatusCode, msg: impl ToString) -> (StatusCode, Json<ApiError>) {
@@ -91,6 +93,26 @@ pub async fn delete_file_handler(
         return Err(err(StatusCode::BAD_REQUEST, "invalid path"));
     }
 
+    // Look up document_id from the persisted index (best-effort)
+    let filename = path.split('/').next_back().unwrap_or("");
+    if !filename.is_empty() {
+        if let Ok(raw) = state.hd.fs_read(FILE_INDEX_PATH).await {
+            if let Ok(map) = serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&raw) {
+                if let Some(doc_id) = map.get(filename).and_then(|v| v.as_str()) {
+                    // Remove from search index; ignore failure (doc may already be gone)
+                    let _ = state.hd.delete_document(doc_id).await;
+                    // Remove entry from index file
+                    let mut updated = map;
+                    updated.remove(filename);
+                    if let Ok(json) = serde_json::to_string(&updated) {
+                        let _ = state.hd.fs_write(FILE_INDEX_PATH, &json).await;
+                    }
+                }
+            }
+        }
+    }
+
+    // Always clean up the filesystem entry
     let result = state
         .hd
         .fs_delete(path)
