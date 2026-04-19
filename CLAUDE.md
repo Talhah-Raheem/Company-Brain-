@@ -1,3 +1,5 @@
+echo "@always_follow.md" | cat - CLAUDE.md > tmp && mv tmp CLAUDE.md  
+
 # The Safety Diver — CLAUDE.md
 
 > "Knowledge Clarity = Water Clarity"  
