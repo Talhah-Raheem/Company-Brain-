@@ -83,3 +83,16 @@ export interface FileContentResponse {
   path: string;
   content: string;
 }
+
+// ── Resolve ───────────────────────────────────────────────────────────────────
+
+export interface ResolveRequest {
+  term: string;
+  canonical_source: string;
+  rejected_source: string;
+}
+
+export interface ResolveResponse {
+  success: boolean;
+  message: string;
+}

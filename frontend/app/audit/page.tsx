@@ -2,19 +2,113 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ScanSearch, ArrowRight, BookOpen, Swords } from "lucide-react";
+import { ScanSearch, ArrowRight, BookOpen, Swords, ShieldCheck, Loader2 } from "lucide-react";
 import GlassPanel from "@/src/components/water/GlassPanel";
 import VortexSpinner from "@/src/components/water/VortexSpinner";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
-import { audit } from "@/src/lib/api";
-import type { AuditReport } from "@/src/lib/types";
+import { audit, resolve } from "@/src/lib/api";
+import type { AuditReport, Contradiction } from "@/src/lib/types";
 
 type Status = "idle" | "diving" | "done" | "error";
+type ResolveStatus = "idle" | "resolving" | "resolved";
+
+function ContradictionCard({ c }: { c: Contradiction }) {
+  const [resolveStatus, setResolveStatus] = useState<ResolveStatus>("idle");
+  const [resolvedMsg, setResolvedMsg]     = useState("");
+  const [canonicalSrc, setCanonicalSrc]   = useState("");
+
+  const trust = async (canonical: string, rejected: string) => {
+    setResolveStatus("resolving");
+    try {
+      const res = await resolve({ term: c.term, canonical_source: canonical, rejected_source: rejected });
+      setResolvedMsg(res.message);
+      setCanonicalSrc(canonical);
+      setResolveStatus("resolved");
+    } catch {
+      setResolveStatus("idle");
+    }
+  };
+
+  return (
+    <GlassPanel glow={resolveStatus === "resolved" ? "clarity" : "toxic"} className="p-6 space-y-4">
+      <p className="text-xs font-bold uppercase tracking-widest text-toxic/80">
+        Conflict on &quot;{c.term}&quot;
+      </p>
+
+      {/* Side-by-side diff */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className={`glass-elevated rounded-xl p-4 space-y-2 transition-all duration-300 ${resolveStatus === "resolved" && canonicalSrc === c.source_a ? "ring-1 ring-clarity/50" : ""}`}>
+          <p className="text-[11px] font-semibold text-foam/35 truncate">{c.source_a}</p>
+          <p className="text-sm text-foam/80 leading-relaxed">&quot;{c.snippet_a}&quot;</p>
+        </div>
+        <div className={`glass-elevated rounded-xl p-4 space-y-2 transition-all duration-300 ${resolveStatus === "resolved" && canonicalSrc === c.source_b ? "ring-1 ring-clarity/50" : ""}`}>
+          <p className="text-[11px] font-semibold text-foam/35 truncate">{c.source_b}</p>
+          <p className="text-sm text-foam/80 leading-relaxed">&quot;{c.snippet_b}&quot;</p>
+        </div>
+      </div>
+
+      {/* Trust buttons / resolved state */}
+      <AnimatePresence mode="wait">
+        {resolveStatus === "resolved" ? (
+          <motion.div
+            key="resolved"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-clarity/10 border border-clarity/25"
+          >
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-clarity shrink-0" />
+              <p className="text-sm font-semibold text-clarity">{resolvedMsg}</p>
+            </div>
+            <button
+              onClick={() => { setResolveStatus("idle"); setResolvedMsg(""); setCanonicalSrc(""); }}
+              className="text-xs text-foam/30 hover:text-foam/60 transition-colors shrink-0"
+            >
+              Change
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div key="buttons" className="flex items-center gap-3">
+            <p className="text-xs text-foam/30 mr-1">Mark as canonical:</p>
+            <RippleButton
+              onClick={() => trust(c.source_a, c.source_b)}
+              disabled={resolveStatus === "resolving"}
+              variant="secondary"
+              className="text-xs"
+            >
+              {resolveStatus === "resolving" ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-3 w-3" />
+              )}
+              Trust {c.source_a}
+            </RippleButton>
+            <RippleButton
+              onClick={() => trust(c.source_b, c.source_a)}
+              disabled={resolveStatus === "resolving"}
+              variant="secondary"
+              className="text-xs"
+            >
+              {resolveStatus === "resolving" ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <ShieldCheck className="h-3 w-3" />
+              )}
+              Trust {c.source_b}
+            </RippleButton>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </GlassPanel>
+  );
+}
+
+type PageStatus = "idle" | "diving" | "done" | "error";
 
 export default function AuditPage() {
   const [query,  setQuery]  = useState("");
-  const [status, setStatus] = useState<Status>("idle");
+  const [status, setStatus] = useState<PageStatus>("idle");
   const [report, setReport] = useState<AuditReport | null>(null);
   const [error,  setError]  = useState("");
 
@@ -110,22 +204,7 @@ export default function AuditPage() {
                 </div>
                 <FlowLayout className="space-y-4">
                   {report.contradictions.map((c, i) => (
-                    <GlassPanel key={i} glow="toxic" className="p-6 space-y-4">
-                      <p className="text-xs font-bold uppercase tracking-widest text-toxic/80">
-                        Conflict on "{c.term}"
-                      </p>
-                      {/* Side-by-side diff */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="glass-elevated rounded-xl p-4 space-y-2">
-                          <p className="text-[11px] font-semibold text-foam/35 truncate">{c.source_a}</p>
-                          <p className="text-sm text-foam/80 leading-relaxed">"{c.snippet_a}"</p>
-                        </div>
-                        <div className="glass-elevated rounded-xl p-4 space-y-2">
-                          <p className="text-[11px] font-semibold text-foam/35 truncate">{c.source_b}</p>
-                          <p className="text-sm text-foam/80 leading-relaxed">"{c.snippet_b}"</p>
-                        </div>
-                      </div>
-                    </GlassPanel>
+                    <ContradictionCard key={i} c={c} />
                   ))}
                 </FlowLayout>
               </section>
@@ -136,7 +215,7 @@ export default function AuditPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-foam">Waters are clear</p>
-                  <p className="text-foam/45 text-sm mt-0.5">No contradictions found for "{report.query}".</p>
+                  <p className="text-foam/45 text-sm mt-0.5">No contradictions found for &quot;{report.query}&quot;.</p>
                 </div>
               </GlassPanel>
             )}
@@ -157,7 +236,7 @@ export default function AuditPage() {
                       <div className="space-y-2">
                         {cluster.snippets.map((s, j) => (
                           <p key={j} className="text-sm text-foam/55 leading-relaxed border-l-2 border-surface pl-3">
-                            "{s}"
+                            &quot;{s}&quot;
                           </p>
                         ))}
                       </div>
