@@ -36,10 +36,15 @@ Type any topic and the diver goes deep into your knowledge base looking for conf
 
 - Powered by vector similarity search across all indexed documents
 - Groups results by source document, then compares them pairwise
+- Detects both fully divergent sources and near-duplicate documents with subtle factual differences
+- **Mark as Canonical** on any contradiction to declare the authoritative source
 - Perfect for detecting outdated policies, conflicting specs, or version drift
 
+### Governance Log
+Every canonical declaration is written to Human Delta's agent filesystem at `/agent/canonical-sources.md`. The Governance Log page shows all active declarations — which source is trusted, which is rejected, and for what term. Declarations can be deleted if a decision needs to be reversed.
+
 ### Clarity Dashboard
-Search your knowledge base and get back not just results — but a **Water Clarity Score** for every one. Know how much to trust each source before your agent consumes it.
+Search your knowledge base and get back not just results — but a **Water Clarity Score** for every one, plus governance badges showing whether a source has been declared canonical or rejected. Know how much to trust each source before your agent consumes it.
 
 | Score | Label | Meaning |
 |---|---|---|
@@ -95,7 +100,9 @@ All matches are **redacted** in reports — the raw sensitive value is never exp
 1. **Ingest** an employee records file → watch the Toxic Water overlay trigger, document blocked
 2. **Ingest** a refund policy document → Murky pass-through with email flagged
 3. **Audit** "refund policy" → contradictions surface between v1 (30-day) and v2 (7-day)
-4. **Search** "refund policy" → results ranked with Water Clarity Scores
+4. **Mark as Canonical** → v2 is declared the source of truth, written to `/agent/canonical-sources.md`
+5. **Governance Log** → declaration appears with canonical and rejected sources listed
+6. **Search** "refund policy" → v2 shows a green Canonical badge, v1 shows a dimmed Rejected badge
 
 ---
 
