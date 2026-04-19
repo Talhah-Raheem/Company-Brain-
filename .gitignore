@@ -1,8 +1,11 @@
-# Python
+# Rust
+backend/target/
+backend/.env
+
+# Python (removed — backend is now Rust)
 backend/venv/
 backend/__pycache__/
 backend/*.pyc
-backend/.env
 
 # Next.js
 frontend/.env.local
