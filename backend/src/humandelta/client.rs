@@ -105,6 +105,36 @@ impl HumanDeltaClient {
         Ok(self.check_response(resp).await?.json().await?)
     }
 
+    /// POST /v1/fs — write content to a path under /agent/
+    pub async fn fs_write(&self, path: &str, content: &str) -> Result<serde_json::Value, HdError> {
+        let body = serde_json::json!({ "cmd": "write", "path": path, "content": content });
+        let resp = self
+            .client
+            .post(format!("{}/v1/fs", self.base_url))
+            .header("Authorization", self.auth_header())
+            .json(&body)
+            .send()
+            .await?;
+        Ok(self.check_response(resp).await?.json().await?)
+    }
+
+    /// POST /v1/fs — read content from a path
+    pub async fn fs_read(&self, path: &str) -> Result<String, HdError> {
+        let body = serde_json::json!({ "cmd": "cat", "path": path });
+        let resp = self
+            .client
+            .post(format!("{}/v1/fs", self.base_url))
+            .header("Authorization", self.auth_header())
+            .json(&body)
+            .send()
+            .await?;
+        let val: serde_json::Value = self.check_response(resp).await?.json().await?;
+        Ok(val.get("output")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string())
+    }
+
     /// POST /v1/fs with a raw shell command string e.g. "grep refund policy"
     pub async fn fs_cmd(&self, cmd: &str) -> Result<serde_json::Value, HdError> {
         let body = serde_json::json!({ "cmd": cmd });

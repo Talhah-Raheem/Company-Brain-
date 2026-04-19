@@ -200,6 +200,21 @@ pub struct AuditReport {
     pub contradictions: Vec<Contradiction>,
 }
 
+// ── Resolve / Mark as Canonical ──────────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+pub struct ResolveRequest {
+    pub term: String,
+    pub canonical_source: String,
+    pub rejected_source: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ResolveResponse {
+    pub success: bool,
+    pub message: String,
+}
+
 // ── API response envelope ─────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]

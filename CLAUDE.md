@@ -203,6 +203,34 @@ Company-Brain-/
 - [x] 🔵 GET /api/files endpoint — lists /uploads via HD fs shell
 - [x] 🔵🟢 End-to-end smoke test: ingest → audit → search full flow — all passing
 - [x] 🔵🟢 Verify CORS, env vars, and ports are correct in production build
+- [x] 🔵🟢 Mark as Canonical: POST /api/audit/resolve writes to /agent/canonical-sources.md in HD filesystem
+- [x] 🟢 Trust buttons on each contradiction card — resolves with green badge, "Change" to re-pick
+- [x] 🔵 Re-resolve replaces existing entry for the same term (no duplicate records)
+
+---
+
+## 12. What's Next
+
+> Priority order — do the top items first, drop the bottom ones if time runs out.
+
+### High Priority (demo impact)
+- [ ] 🟢 **Governance Log page** (`/governance`) — read `/agent/canonical-sources.md` from HD and display all canonical declarations in a clean UI. This is the judge money moment — proves the write actually happened and the corpus is governed.
+- [ ] 🔵 `GET /api/governance` — reads `/agent/canonical-sources.md` via HD `fs_read`, parses and returns structured `{ term, canonical, rejected }[]`
+- [ ] 🟢 **Audit wave shimmer skeletons** — search has them, audit doesn't. Add same skeleton pattern while diving.
+
+### Medium Priority (polish)
+- [ ] 🟢 **Empty state on audit** — if no clusters found at all (not just no contradictions), show a "Nothing indexed yet" message instead of just the clear waters panel
+- [ ] 🟢 **Ingest success animation** — after a clean/murky upload, animate the result card in with a water ripple effect
+- [ ] 🔵🟢 **Search result source names** — uploaded docs return empty source; wire up file name from the corpus metadata
+
+### Low Priority (skip if tight on time)
+- [ ] URL crawl status polling — show when a crawled site finishes indexing
+- [ ] Clarity score label copy tweaks
+- [ ] Mobile responsiveness pass
+
+### Future Features
+- [ ] 🟢 **Frontend UI Overhaul** — deeper aquatic immersion: animated water background with parallax depth layers, bubble particle effects, wave transitions between pages, fluid card entrance animations, underwater light caustic effects on glass panels, and a more dynamic color system that reacts to overall corpus health (cleaner corpus = clearer water tone across the whole UI)
+- [ ] 🔵🟢 **Agent Mode** — give The Safety Diver its own AI agent capabilities: auto-scan newly indexed content on a schedule, proactively surface new contradictions as documents are added, suggest canonical resolutions based on document recency or authority score, and expose a webhook or API for external agents to query corpus health before consuming knowledge
 
 ---
 
