@@ -28,13 +28,31 @@ pub async fn audit_handler(
         .map_err(|e| err(StatusCode::BAD_GATEWAY, e))?;
 
     // Group results by source document
-    let clusters = build_clusters(&search_resp.results);
+    let clusters = build_clusters(&search_resp.results, &query);
     let contradictions = detect_contradictions(&query, &clusters);
 
     Ok(Json(AuditReport { query, clusters, contradictions }))
 }
 
-fn build_clusters(results: &[crate::models::SearchResult]) -> Vec<DocCluster> {
+fn snippet_contains_all_query_terms(snippet: &str, query: &str) -> bool {
+    let lower = snippet.to_lowercase();
+    let mut any = false;
+    for word in query.split_whitespace() {
+        let token: String = word
+            .trim_matches(|c: char| !c.is_alphanumeric())
+            .to_lowercase();
+        if token.is_empty() {
+            continue;
+        }
+        any = true;
+        if !lower.contains(&token) {
+            return false;
+        }
+    }
+    any
+}
+
+fn build_clusters(results: &[crate::models::SearchResult], query: &str) -> Vec<DocCluster> {
     use std::collections::HashMap;
 
     let mut map: HashMap<String, Vec<String>> = HashMap::new();
@@ -42,6 +60,11 @@ fn build_clusters(results: &[crate::models::SearchResult]) -> Vec<DocCluster> {
     for result in results {
         let score = result.score.unwrap_or(0.0);
         if score < SCORE_THRESHOLD {
+            continue;
+        }
+
+        let raw = result.content.trim();
+        if !snippet_contains_all_query_terms(raw, query) {
             continue;
         }
 
@@ -53,7 +76,6 @@ fn build_clusters(results: &[crate::models::SearchResult]) -> Vec<DocCluster> {
             .unwrap_or("unknown")
             .to_string();
 
-        let raw = result.content.trim();
         let snippet = if raw.chars().count() > 200 {
             format!("{}…", raw.chars().take(200).collect::<String>())
         } else {

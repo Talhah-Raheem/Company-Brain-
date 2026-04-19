@@ -178,6 +178,7 @@ Company-Brain-/
 - [x] Contradiction detector: Jaccard word-set similarity < 0.4 = contradiction
 - [x] Returns `AuditReport { query, clusters, contradictions }`
 - [x] Live tested: "refund policy" → 2 clusters (30-day vs 7-day policy), 1 contradiction detected
+- [x] Query-term pre-filter in `build_clusters`: snippets must contain every word from the query (case-insensitive, punctuation-stripped) before entering the cluster map — drops unrelated docs that HD returned on shared generic words like "policy"
 
 ---
 
