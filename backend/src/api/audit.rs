@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use axum::{extract::State, http::StatusCode, response::Json};
 
@@ -15,6 +15,7 @@ fn err(status: StatusCode, msg: impl ToString) -> (StatusCode, Json<ApiError>) {
 
 const SCORE_THRESHOLD: f64 = 0.6;
 const DISPLAY_SNIPPET_CHARS: usize = 200;
+const DELETED_PATH: &str = "/agent/deleted-files.json";
 
 pub async fn audit_handler(
     State(state): State<AppState>,
@@ -28,7 +29,35 @@ pub async fn audit_handler(
         .await
         .map_err(|e| err(StatusCode::BAD_GATEWAY, e))?;
 
-    let (clusters, full_texts) = build_clusters(&search_resp.results, &query);
+    // Build a set of tombstoned filenames so deleted docs are excluded from audit results.
+    let deleted_filenames: HashSet<String> = {
+        let raw = state.hd.fs_read(DELETED_PATH).await.unwrap_or_default();
+        if raw.is_empty() {
+            HashSet::new()
+        } else {
+            let paths: Vec<String> = serde_json::from_str(&raw).unwrap_or_default();
+            paths
+                .into_iter()
+                .filter_map(|p| p.split('/').last().map(|s| s.to_string()))
+                .collect()
+        }
+    };
+
+    let live_results: Vec<_> = search_resp
+        .results
+        .into_iter()
+        .filter(|r| {
+            let source = r.extra
+                .get("page_title")
+                .and_then(|v| v.as_str())
+                .or_else(|| r.source.as_deref())
+                .unwrap_or("");
+            let filename = source.split('/').last().unwrap_or(source);
+            !deleted_filenames.contains(filename)
+        })
+        .collect();
+
+    let (clusters, full_texts) = build_clusters(&live_results, &query);
     let contradictions = detect_contradictions(&query, &clusters, &full_texts);
 
     Ok(Json(AuditReport { query, clusters, contradictions }))
