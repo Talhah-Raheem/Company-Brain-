@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0a1628;
+    color: #e0f2fe;
+  }
+}
+
+@layer components {
+  /* Core glassmorphism panel */
+  .glass {
+    background: rgba(13, 43, 78, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(56, 189, 248, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Elevated variant — used for cards inside panels */
+  .glass-elevated {
+    background: rgba(26, 74, 122, 0.35);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  /* Gradient text — primary brand treatment */
+  .text-gradient-flow {
+    background: linear-gradient(135deg, #38bdf8 0%, #06b6d4 60%, #0891b2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}

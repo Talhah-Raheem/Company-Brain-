@@ -103,54 +103,102 @@ Company-Brain-/
 
 ## 5. Development Phases
 
-### Phase 1 — Rust Backend Scaffold ✅ DONE
-- [x] Remove Python backend files (`backend/main.py`, `backend/config.py`)
-- [x] `cargo init backend` with: `axum`, `tokio` (full), `reqwest` (json), `serde`, `serde_json`, `tower-http` (cors), `dotenvy`, `thiserror`
-- [x] Implement health check `GET /health`
-- [x] Wire CORS for `http://localhost:3000`
-- [x] Build `humandelta/client.rs` with typed methods for all 4 HD endpoints
-- [x] Load `HUMAN_DELTA_API_KEY` from `.env`
+> **Ownership key:** 🔵 Backend (teammate) · 🟢 Frontend (Talhah) · ✅ Done
 
-### Phase 2 — Pollution Middleware ✅ DONE
+---
+
+### Phase 1 — Rust Backend Scaffold ✅ COMPLETE
+> Owner: 🔵 Backend
+
+- [x] Axum + Tokio + Reqwest + Serde + tower-http (CORS) + dotenvy + thiserror in `Cargo.toml`
+- [x] Health check `GET /health` returning `{ status, version }`
+- [x] CORS wired for `http://localhost:3000`
+- [x] `humandelta/client.rs` — typed methods: `crawl_index`, `upload_document`, `search`, `fs`
+- [x] `models/mod.rs` — all shared types: Index, Search, Fs, HealthResponse, ApiError
+- [x] `HUMAN_DELTA_API_KEY` + `PORT` loaded from `.env`
+- [x] API route stubs: `api/ingest.rs`, `api/audit.rs`, `api/search.rs`
+
+---
+
+### Phase 1b — Frontend Foundation ✅ COMPLETE
+> Owner: 🟢 Frontend  
+> **Do not touch:** `backend/` directory
+
+- [x] `framer-motion` + `lucide-react` installed
+- [x] Water theme in `tailwind.config.ts`: 8 colors (`deep`, `current`, `surface`, `flow`, `clarity`, `murky`, `toxic`, `foam`)
+- [x] `globals.css`: `.glass`, `.glass-elevated`, `.text-gradient-flow` base classes
+- [x] `src/lib/types.ts`: all API response shapes
+- [x] `src/lib/api.ts`: typed fetch wrappers — `ingestFile`, `ingestUrl`, `audit`, `search` → pointing at `NEXT_PUBLIC_BACKEND_URL`
+- [x] `src/components/NavBar.tsx`: sticky glass nav, animated Waves brand, active-link spring pill
+- [x] `src/components/water/GlassPanel.tsx` / `WaterClarityBadge.tsx` / `VortexSpinner.tsx` / `RippleButton.tsx` / `FlowLayout.tsx`
+- [x] `app/layout.tsx`: Inter font, deep ocean shell, NavBar
+- [x] `app/page.tsx`: atmospheric hero with floating orbs, animated title, 3 feature cards
+- [x] `app/ingest/page.tsx`: drag-drop zone + URL tab, clarity flood animation — **wires to `POST /api/ingest`**
+- [x] `app/audit/page.tsx`: dive search bar, VortexSpinner, contradiction diff cards — **wires to `POST /api/audit`**
+- [x] `app/search/page.tsx`: search bar, glass result cards with clarity score bars — **wires to `POST /api/search`**
+
+---
+
+### Phase 2 — Pollution Middleware ✅ COMPLETE
+> Owner: 🔵 Backend
+
 - [x] `pollution/scanner.rs`: regex patterns for SSN, email, credit card, phone, API keys, AWS secrets
-- [x] `PollutionReport` model: `{ matches: Vec<PollutionMatch>, severity: Clean | Murky | Toxic }`
-- [x] `PollutionMatch`: `{ pattern_type, snippet, char_offset }`
-- [x] Severity logic: 0 matches = Clean, 1–2 = Murky, 3+ or secret key = Toxic
-- [x] Unit test the scanner with known PII strings (11/11 passing)
+- [x] `PollutionReport` + `PollutionMatch` + `Severity` + `PatternType` structs in `models/mod.rs`
+- [x] Severity logic: 0 = Clean · 1–2 = Murky · 3+ or any secret key = Toxic
+- [x] Smart redaction: SSN keeps last 4, card keeps last 4, secrets show key name only
+- [x] Unit tests — 11/11 passing (`cargo test`)
 
-### Phase 3 — Purified Ingestion (Hours 8–14)
-- [ ] Backend: `POST /api/ingest` — scan content → return report → conditionally forward to HD `/v1/documents`
-- [ ] Support: file upload (PDF, CSV, MD), URL crawl trigger (`/v1/indexes`)
-- [ ] Frontend: drag-and-drop upload zone + URL input field
-- [ ] Water clarity animation on scan completion (color flood: blue → amber → red)
-- [ ] Show `PollutionReport` breakdown with redacted snippet previews
+---
 
-### Phase 4 — The Auditor / Diver Mode (Hours 14–22)
-- [ ] Backend: `POST /api/audit` with `{ query: string }` param
-- [ ] Call HD `/v1/fs` with `grep` command for the query term
-- [ ] Cluster grep results by source document
-- [ ] Contradiction detection: compare sentences containing the term across docs, flag divergence
-- [ ] Return `AuditReport { query, clusters: Vec<DocCluster>, contradictions: Vec<Contradiction> }`
-- [ ] Frontend: search bar for audit query
-- [ ] "Vortex" spinner while diving
-- [ ] Contradiction cards with side-by-side diff (source A vs source B)
-- [ ] "The Vortex" swirl visualization for high-contradiction results
+### Phase 3 — Purified Ingestion Route
+> Owner: 🔵 Backend only (frontend UI is ✅ done)  
+> **Do not touch:** `frontend/` directory
 
-### Phase 5 — Clarity Dashboard / Search (Hours 22–28)
-- [ ] Backend: `POST /api/search` → proxy to HD `/v1/search`, attach clarity score
-- [ ] Clarity score = weighted combo of: source age (fresher = better) + contradiction flag from audit cache
-- [ ] Return `SearchResult { content, source, similarity, clarity_score, clarity_label }`
-- [ ] Frontend: search bar on `/search` page
-- [ ] Results rendered as glass cards with water clarity badge
-- [ ] Clicking a result shows full source doc + audit link
+- [ ] Register `POST /api/ingest` in `main.rs` router
+- [ ] Handler in `api/ingest.rs`:
+  - Accept `multipart/form-data` (file) OR `application/json` `{ url }`
+  - Run `pollution::scanner::scan()` on text content
+  - If file: call `hd.upload_document()` only if severity != Toxic
+  - If URL: call `hd.crawl_index()` (no block — URLs can't be pre-scanned)
+  - Return `IngestResponse { report, forwarded, document_id?, index_id? }`
 
-### Phase 6 — Polish & Demo Prep (Hours 28–32)
-- [ ] Full glassmorphism pass: `backdrop-blur`, translucent borders, layered depth
-- [ ] Framer Motion: page transitions (wave wipe), staggered list entries, ripple on button click
-- [ ] Loading skeletons (wave shimmer)
-- [ ] Error states: "Toxic Water" full-screen overlay for severe pollution
-- [ ] Demo data: pre-loaded docs with planted PII and contradictions for live demo
-- [ ] Landing page: animated hero with floating glass panels, project explanation
+---
+
+### Phase 4 — Audit / Diver Mode Route
+> Owner: 🔵 Backend only (frontend UI is ✅ done)  
+> **Do not touch:** `frontend/` directory
+
+- [ ] Register `POST /api/audit` in `main.rs` router
+- [ ] Handler in `api/audit.rs`:
+  - Accept `{ query: String }`
+  - Call `hd.fs(FsRequest { command: Grep, pattern: query })` 
+  - Cluster grep results by source document → `Vec<DocCluster>`
+  - Compare snippets across clusters — flag diverging facts as `Vec<Contradiction>`
+  - Return `AuditReport { query, clusters, contradictions }`
+
+---
+
+### Phase 5 — Clarity Dashboard / Search Route
+> Owner: 🔵 Backend only (frontend UI is ✅ done)  
+> **Do not touch:** `frontend/` directory
+
+- [ ] Register `POST /api/search` in `main.rs` router
+- [ ] Handler in `api/search.rs`:
+  - Accept `{ query: String, limit?: u32 }`
+  - Call `hd.search(SearchRequest { query, limit })`
+  - For each result: compute `clarity_score` (0–100) and `clarity_label`
+  - Return `SearchResponse { results: Vec<SearchResultItem> }`
+
+---
+
+### Phase 6 — Demo Prep & Final Polish
+> Owner: 🔵🟢 Both
+
+- [ ] 🔵 Seed demo data: upload docs with planted PII + contradictions via `/api/ingest`
+- [ ] 🟢 Error states: "Toxic Water" full-screen overlay for Toxic severity on ingest
+- [ ] 🟢 Loading skeletons (wave shimmer) on search results
+- [ ] 🔵🟢 End-to-end smoke test: ingest → audit → search full flow
+- [ ] 🔵🟢 Verify CORS, env vars, and ports are correct in production build
 
 ---
 
