@@ -33,18 +33,19 @@ const floodColors = {
 };
 
 export default function IngestPage() {
-  const [tab,        setTab]        = useState<Tab>("file");
-  const [file,       setFile]       = useState<File | null>(null);
-  const [url,        setUrl]        = useState("");
-  const [isDragging, setIsDragging] = useState(false);
-  const [status,     setStatus]     = useState<Status>("idle");
-  const [result,     setResult]     = useState<IngestResponse | null>(null);
-  const [error,      setError]      = useState("");
+  const [tab,              setTab]              = useState<Tab>("file");
+  const [file,             setFile]             = useState<File | null>(null);
+  const [url,              setUrl]              = useState("");
+  const [isDragging,       setIsDragging]       = useState(false);
+  const [status,           setStatus]           = useState<Status>("idle");
+  const [result,           setResult]           = useState<IngestResponse | null>(null);
+  const [error,            setError]            = useState("");
+  const [showToxicOverlay, setShowToxicOverlay] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
   const reset = () => {
     setFile(null); setUrl(""); setStatus("idle");
-    setResult(null); setError("");
+    setResult(null); setError(""); setShowToxicOverlay(false);
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -64,6 +65,7 @@ export default function IngestPage() {
         : await ingestUrl(url);
       setResult(res);
       setStatus("done");
+      if (res.report.severity === "Toxic") setShowToxicOverlay(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
       setStatus("error");
@@ -73,6 +75,7 @@ export default function IngestPage() {
   const canSubmit = status !== "scanning" && (tab === "file" ? !!file : url.trim().length > 5);
 
   return (
+    <>
     <div className="max-w-2xl mx-auto space-y-8">
 
       {/* ── Header ── */}
@@ -286,5 +289,97 @@ export default function IngestPage() {
         )}
       </AnimatePresence>
     </div>
+
+    {/* ── Toxic Water Overlay ── */}
+    <AnimatePresence>
+      {showToxicOverlay && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+        >
+          {/* Blurred backdrop — click to dismiss */}
+          <div
+            className="absolute inset-0 bg-deep/90 backdrop-blur-xl"
+            onClick={() => setShowToxicOverlay(false)}
+          />
+
+          {/* Panel */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92, y: 24 }}
+            animate={{ opacity: 1, scale: 1,    y:  0 }}
+            exit={{    opacity: 0, scale: 0.92, y: 24 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="relative z-10 w-full max-w-md glass rounded-2xl border border-toxic/35 shadow-[0_0_80px_rgba(239,68,68,0.18)] p-8 space-y-6"
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowToxicOverlay(false)}
+              className="absolute top-4 right-4 text-foam/30 hover:text-foam/70 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Pulsing biohazard icon */}
+            <div className="flex justify-center">
+              <motion.div
+                animate={{ opacity: [1, 0.45, 1], scale: [1, 1.06, 1] }}
+                transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                className="w-20 h-20 rounded-full bg-toxic/12 border border-toxic/30 flex items-center justify-center"
+                style={{ boxShadow: "0 0 40px rgba(239,68,68,0.2)" }}
+              >
+                <Biohazard className="h-10 w-10 text-toxic" />
+              </motion.div>
+            </div>
+
+            {/* Heading */}
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-extrabold tracking-tight text-toxic">Toxic Waters</h2>
+              <p className="text-foam/50 text-sm leading-relaxed">
+                Critical contamination detected. This document has been{" "}
+                <span className="text-toxic font-semibold">blocked</span> from entering the corpus.
+              </p>
+            </div>
+
+            {/* Matches list */}
+            {result && result.report.match_count > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold tracking-widest uppercase text-foam/35 text-center">
+                  {result.report.match_count} Contamination{result.report.match_count > 1 ? "s" : ""} Detected
+                </p>
+                <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                  {result.report.matches.map((m, i) => {
+                    const Icon = patternIcons[m.pattern_type] ?? AlertTriangle;
+                    return (
+                      <div key={i} className="glass-elevated rounded-xl px-4 py-3 flex items-start gap-3">
+                        <Icon className="h-4 w-4 text-toxic mt-0.5 shrink-0" />
+                        <div>
+                          <span className="text-xs font-bold text-toxic uppercase tracking-wide">
+                            {m.pattern_type.replace(/_/g, " ")}
+                          </span>
+                          <p className="text-xs text-foam/50 mt-0.5 font-mono">{m.snippet}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Dismiss */}
+            <RippleButton
+              onClick={() => setShowToxicOverlay(false)}
+              variant="danger"
+              className="w-full justify-center py-3"
+            >
+              Acknowledge &amp; Dismiss
+            </RippleButton>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
