@@ -27,9 +27,9 @@ const patternIcons: Record<string, typeof CheckCircle2> = {
 };
 
 const floodColors = {
-  clean: "bg-clarity",
-  murky: "bg-murky",
-  toxic: "bg-toxic",
+  Clean: "bg-clarity",
+  Murky: "bg-murky",
+  Toxic: "bg-toxic",
 };
 
 export default function IngestPage() {
@@ -236,7 +236,7 @@ export default function IngestPage() {
               />
 
               <GlassPanel
-                glow={result.report.severity === "clean" ? "clarity" : result.report.severity === "murky" ? "murky" : "toxic"}
+                glow={result.report.severity === "Clean" ? "clarity" : result.report.severity === "Murky" ? "murky" : "toxic"}
                 className="p-7 space-y-6 bg-transparent border-0 shadow-none"
               >
                 {/* Summary row */}

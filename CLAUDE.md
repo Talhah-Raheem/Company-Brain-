@@ -153,16 +153,18 @@ Company-Brain-/
 ---
 
 ### Phase 3 — Purified Ingestion Route ✅ COMPLETE
-> Owner: 🔵 Backend
+> Owner: 🔵 Backend + 🟢 Frontend type fixes
 
 - [x] `POST /api/ingest` registered in `main.rs`
 - [x] Branches on `Content-Type`: multipart → file path, JSON → URL path
 - [x] File path: UTF-8 scan → blocks Toxic, forwards Clean/Murky to HD `/v1/documents`
 - [x] URL path: calls HD `/v1/indexes` crawl (no pre-scan — always forward)
 - [x] Binary files (PDF/images) skip text scan, forward as-is
-- [x] Fixed `Severity` serialization bug: now "Clean"/"Murky"/"Toxic" (was lowercase — frontend mismatch)
+- [x] `Severity` serializes as `"Clean"` / `"Murky"` / `"Toxic"` (no serde rename on enum)
+- [x] `PatternType` serializes as snake_case: `"ssn"`, `"email"`, `"credit_card"`, `"phone"`, `"api_key"`, `"aws_key"`
+- [x] `IngestResponse` + `UrlIngestRequest` added to `models/mod.rs`
 - [x] Returns `IngestResponse { report, forwarded, document_id?, index_id? }`
-- [x] Live tested: SSN+email file → Murky, forwarded=true, document_id returned from HD
+- [x] Frontend types, badge config, flood colors, and icon map all aligned to match
 
 ---
 

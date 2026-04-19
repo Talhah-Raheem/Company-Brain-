@@ -1,7 +1,7 @@
 // ── Pollution / Ingest ───────────────────────────────────────────────────────
 
-// Matches Rust: #[serde(rename_all = "snake_case")] on Severity enum
-export type PollutionSeverity = "clean" | "murky" | "toxic";
+// Matches Rust Severity enum (no serde rename — serializes as variant names)
+export type PollutionSeverity = "Clean" | "Murky" | "Toxic";
 
 // Matches Rust: #[serde(rename_all = "snake_case")] on PatternType enum
 export type PatternType =
