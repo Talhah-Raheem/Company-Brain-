@@ -103,20 +103,20 @@ Company-Brain-/
 
 ## 5. Development Phases
 
-### Phase 1 — Rust Backend Scaffold (Hours 0–4)
-- [ ] Remove Python backend files (`backend/main.py`, `backend/config.py`)
-- [ ] `cargo init backend` with: `axum`, `tokio` (full), `reqwest` (json), `serde`, `serde_json`, `tower-http` (cors), `dotenvy`, `thiserror`
-- [ ] Implement health check `GET /health`
-- [ ] Wire CORS for `http://localhost:3000`
-- [ ] Build `humandelta/client.rs` with typed methods for all 4 HD endpoints
-- [ ] Load `HUMAN_DELTA_API_KEY` from `.env`
+### Phase 1 — Rust Backend Scaffold ✅ DONE
+- [x] Remove Python backend files (`backend/main.py`, `backend/config.py`)
+- [x] `cargo init backend` with: `axum`, `tokio` (full), `reqwest` (json), `serde`, `serde_json`, `tower-http` (cors), `dotenvy`, `thiserror`
+- [x] Implement health check `GET /health`
+- [x] Wire CORS for `http://localhost:3000`
+- [x] Build `humandelta/client.rs` with typed methods for all 4 HD endpoints
+- [x] Load `HUMAN_DELTA_API_KEY` from `.env`
 
-### Phase 2 — Pollution Middleware (Hours 4–8)
-- [ ] `pollution/scanner.rs`: regex patterns for SSN, email, credit card, phone, API keys, AWS secrets
-- [ ] `PollutionReport` model: `{ matches: Vec<PollutionMatch>, severity: Clean | Murky | Toxic }`
-- [ ] `PollutionMatch`: `{ pattern_type, snippet, char_offset }`
-- [ ] Severity logic: 0 matches = Clean, 1–2 = Murky, 3+ or secret key = Toxic
-- [ ] Unit test the scanner with known PII strings
+### Phase 2 — Pollution Middleware ✅ DONE
+- [x] `pollution/scanner.rs`: regex patterns for SSN, email, credit card, phone, API keys, AWS secrets
+- [x] `PollutionReport` model: `{ matches: Vec<PollutionMatch>, severity: Clean | Murky | Toxic }`
+- [x] `PollutionMatch`: `{ pattern_type, snippet, char_offset }`
+- [x] Severity logic: 0 matches = Clean, 1–2 = Murky, 3+ or secret key = Toxic
+- [x] Unit test the scanner with known PII strings (11/11 passing)
 
 ### Phase 3 — Purified Ingestion (Hours 8–14)
 - [ ] Backend: `POST /api/ingest` — scan content → return report → conditionally forward to HD `/v1/documents`
