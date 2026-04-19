@@ -207,6 +207,7 @@ Company-Brain-/
 - [x] 🔵🟢 Mark as Canonical: POST /api/audit/resolve writes to /agent/canonical-sources.md in HD filesystem
 - [x] 🟢 Trust buttons on each contradiction card — resolves with green badge, "Change" to re-pick
 - [x] 🔵 Re-resolve replaces existing entry for the same term (no duplicate records)
+- [x] 🔵🟢 Delete file from corpus: DELETE /api/files purges the HD search-index document (via `/agent/file-index.json` lookup) and appends to `/agent/deleted-files.json` tombstone list — list_files filters tombstoned paths out. Replaces the earlier `fs_delete` approach since `/uploads/` is a read-only namespace on HD. Frontend surfaces delete failures via alert instead of silently swallowing.
 
 ---
 

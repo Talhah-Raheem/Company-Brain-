@@ -67,8 +67,9 @@ export default function IngestPage() {
     try {
       await deleteFile(path);
       setCorpusFiles(prev => prev ? prev.filter(f => f.path !== path) : prev);
-    } catch {
-      // silently ignore — file may already be gone
+    } catch (e) {
+      console.error("delete failed", path, e);
+      alert(`Failed to delete ${path.split("/").pop()}: ${e instanceof Error ? e.message : "unknown error"}`);
     } finally {
       setDeletingFile(null);
     }

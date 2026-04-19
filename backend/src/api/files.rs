@@ -6,6 +6,15 @@ use serde::Serialize;
 use crate::{models::ApiError, AppState};
 
 const FILE_INDEX_PATH: &str = "/agent/file-index.json";
+const DELETED_PATH: &str = "/agent/deleted-files.json";
+
+async fn read_deleted_list(state: &AppState) -> Vec<String> {
+    let raw = state.hd.fs_read(DELETED_PATH).await.unwrap_or_default();
+    if raw.is_empty() {
+        return Vec::new();
+    }
+    serde_json::from_str(&raw).unwrap_or_default()
+}
 
 type ApiResult<T> = Result<Json<T>, (StatusCode, Json<ApiError>)>;
 
@@ -36,9 +45,13 @@ pub async fn list_files_handler(State(state): State<AppState>) -> ApiResult<File
         .and_then(|v| v.as_str())
         .unwrap_or("");
 
+    let deleted: std::collections::HashSet<String> =
+        read_deleted_list(&state).await.into_iter().collect();
+
     let files = stdout
         .lines()
         .filter(|l| !l.trim().is_empty())
+        .filter(|path| !deleted.contains(*path))
         .map(|path| {
             let name = path.split('/').last().unwrap_or(path).to_string();
             FileEntry { name, path: path.to_string() }
@@ -93,15 +106,15 @@ pub async fn delete_file_handler(
         return Err(err(StatusCode::BAD_REQUEST, "invalid path"));
     }
 
-    // Look up document_id from the persisted index (best-effort)
+    // Best-effort: look up document_id and purge from the search index.
+    // /uploads/ is a read-only namespace on HD, so we can't fs_delete the file itself —
+    // instead we record a tombstone that list_files_handler filters out.
     let filename = path.split('/').next_back().unwrap_or("");
     if !filename.is_empty() {
         if let Ok(raw) = state.hd.fs_read(FILE_INDEX_PATH).await {
             if let Ok(map) = serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(&raw) {
                 if let Some(doc_id) = map.get(filename).and_then(|v| v.as_str()) {
-                    // Remove from search index; ignore failure (doc may already be gone)
                     let _ = state.hd.delete_document(doc_id).await;
-                    // Remove entry from index file
                     let mut updated = map;
                     updated.remove(filename);
                     if let Ok(json) = serde_json::to_string(&updated) {
@@ -112,12 +125,17 @@ pub async fn delete_file_handler(
         }
     }
 
-    // Always clean up the filesystem entry
-    let result = state
+    let mut deleted = read_deleted_list(&state).await;
+    if !deleted.iter().any(|p| p == path) {
+        deleted.push(path.clone());
+    }
+    let json = serde_json::to_string(&deleted)
+        .map_err(|e| err(StatusCode::INTERNAL_SERVER_ERROR, e))?;
+    state
         .hd
-        .fs_delete(path)
+        .fs_write(DELETED_PATH, &json)
         .await
         .map_err(|e| err(StatusCode::BAD_GATEWAY, e))?;
 
-    Ok(Json(result))
+    Ok(Json(serde_json::json!({ "ok": true, "path": path })))
 }
