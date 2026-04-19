@@ -56,6 +56,19 @@ pub enum ClarityLabel {
     Toxic,
 }
 
+#[derive(Debug, Serialize, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum GovernanceStatus {
+    Canonical,
+    Rejected,
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct GovernanceTag {
+    pub status: GovernanceStatus,
+    pub term: String,
+}
+
 #[derive(Debug, Serialize)]
 pub struct SearchResultItem {
     pub content: String,
@@ -63,6 +76,8 @@ pub struct SearchResultItem {
     pub similarity: f64,
     pub clarity_score: u32,
     pub clarity_label: ClarityLabel,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub governance: Option<GovernanceTag>,
 }
 
 #[derive(Debug, Serialize)]

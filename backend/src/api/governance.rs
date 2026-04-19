@@ -26,7 +26,7 @@ pub async fn governance_handler(
     Ok(Json(GovernanceResponse { entries: parse_canonical(&content) }))
 }
 
-fn parse_canonical(md: &str) -> Vec<GovernanceEntry> {
+pub fn parse_canonical(md: &str) -> Vec<GovernanceEntry> {
     let mut entries = Vec::new();
     let mut term: Option<String> = None;
     let mut canonical = String::new();

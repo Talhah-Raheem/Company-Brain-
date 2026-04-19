@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ExternalLink, Droplets, AlertTriangle, Biohazard, Sparkles, FileText } from "lucide-react";
+import { Search, ExternalLink, Droplets, AlertTriangle, Biohazard, Sparkles, FileText, ShieldCheck, ShieldAlert } from "lucide-react";
 import GlassPanel from "@/src/components/water/GlassPanel";
 import WaterClarityBadge from "@/src/components/water/WaterClarityBadge";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
 import { search, listFiles } from "@/src/lib/api";
-import type { SearchResultItem, ClarityLabel, PollutionSeverity, FileEntry } from "@/src/lib/types";
+import type { SearchResultItem, ClarityLabel, PollutionSeverity, FileEntry, GovernanceTag } from "@/src/lib/types";
 
 type Status = "idle" | "searching" | "done" | "error";
 
@@ -78,13 +78,38 @@ function ScoreBar({ score, label }: { score: number; label: ClarityLabel }) {
   );
 }
 
+function GovernanceBadge({ tag }: { tag: GovernanceTag }) {
+  if (tag.status === "canonical") {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-clarity/15 border border-clarity/30 text-clarity text-[11px] font-semibold tracking-wide">
+        <ShieldCheck className="h-3 w-3" />
+        Canonical for &ldquo;{tag.term}&rdquo;
+      </div>
+    );
+  }
+  return (
+    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-toxic/10 border border-toxic/25 text-toxic/85 text-[11px] font-semibold tracking-wide">
+      <ShieldAlert className="h-3 w-3" />
+      Rejected — superseded for &ldquo;{tag.term}&rdquo;
+    </div>
+  );
+}
+
 function ResultCard({ item }: { item: SearchResultItem }) {
   const Icon = clarityIcons[item.clarity_label];
   const glow = item.clarity_label === "toxic" ? "toxic" :
                item.clarity_label === "murky" ? "murky" : "clarity";
 
-  return (
-    <GlassPanel glow={glow as "toxic" | "murky" | "clarity"} className="p-6 space-y-4">
+  const isCanonical = item.governance?.status === "canonical";
+  const isRejected  = item.governance?.status === "rejected";
+
+  const panel = (
+    <GlassPanel
+      glow={glow as "toxic" | "murky" | "clarity"}
+      className={`p-6 space-y-4 ${isCanonical ? "ring-1 ring-clarity/40" : ""}`}
+    >
+      {item.governance && <GovernanceBadge tag={item.governance} />}
+
       <p className="text-sm text-foam/80 leading-relaxed line-clamp-3">{item.content}</p>
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -110,6 +135,8 @@ function ResultCard({ item }: { item: SearchResultItem }) {
       </div>
     </GlassPanel>
   );
+
+  return isRejected ? <div className="opacity-60">{panel}</div> : panel;
 }
 
 function FilesPanel({ files }: { files: FileEntry[] }) {

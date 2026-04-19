@@ -56,12 +56,20 @@ export interface AuditReport {
 
 export type ClarityLabel = "crystal" | "clear" | "murky" | "toxic";
 
+export type GovernanceStatus = "canonical" | "rejected";
+
+export interface GovernanceTag {
+  status: GovernanceStatus;
+  term: string;
+}
+
 export interface SearchResultItem {
   content: string;
   source: string;
   similarity: number;     // 0–1, from HD score field
   clarity_score: number;  // 0–100, computed by backend
   clarity_label: ClarityLabel;
+  governance?: GovernanceTag;
 }
 
 export interface SearchResponse {
