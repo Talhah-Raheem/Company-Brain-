@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload, Link2, CloudUpload, FileText, X,
-  CheckCircle2, AlertTriangle, Biohazard, ArrowRight,
+  CheckCircle2, AlertTriangle, Biohazard, ArrowRight, RefreshCw, Eye,
 } from "lucide-react";
 import GlassPanel from "@/src/components/water/GlassPanel";
 import WaterClarityBadge from "@/src/components/water/WaterClarityBadge";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
-import { ingestFile, ingestUrl } from "@/src/lib/api";
-import type { IngestResponse } from "@/src/lib/types";
+import { ingestFile, ingestUrl, listFiles, getFileContent } from "@/src/lib/api";
+import type { IngestResponse, FileEntry, FileContentResponse } from "@/src/lib/types";
 import { cn } from "@/src/lib/utils";
 
 type Tab    = "file" | "url";
@@ -41,7 +41,36 @@ export default function IngestPage() {
   const [result,           setResult]           = useState<IngestResponse | null>(null);
   const [error,            setError]            = useState("");
   const [showToxicOverlay, setShowToxicOverlay] = useState(false);
+  const [corpusFiles,      setCorpusFiles]      = useState<FileEntry[] | null>(null);
+  const [corpusLoading,    setCorpusLoading]    = useState(false);
+  const [viewingFile,      setViewingFile]      = useState<FileContentResponse | null>(null);
+  const [viewLoading,      setViewLoading]      = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
+
+  const fetchCorpus = useCallback(async () => {
+    setCorpusLoading(true);
+    try {
+      const res = await listFiles();
+      setCorpusFiles(res.files);
+    } catch {
+      setCorpusFiles([]);
+    } finally {
+      setCorpusLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchCorpus(); }, [fetchCorpus]);
+
+  const openFile = async (file: FileEntry) => {
+    setViewLoading(true);
+    setViewingFile(null);
+    try {
+      const res = await getFileContent(file.path);
+      setViewingFile(res);
+    } finally {
+      setViewLoading(false);
+    }
+  };
 
   const reset = () => {
     setFile(null); setUrl(""); setStatus("idle");
@@ -66,6 +95,7 @@ export default function IngestPage() {
       setResult(res);
       setStatus("done");
       if (res.report.severity === "Toxic") setShowToxicOverlay(true);
+      if (res.forwarded) fetchCorpus();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
       setStatus("error");
@@ -288,7 +318,100 @@ export default function IngestPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Corpus ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold tracking-widest uppercase text-foam/40">Corpus</h2>
+          <button
+            onClick={fetchCorpus}
+            disabled={corpusLoading}
+            className="text-foam/30 hover:text-foam/70 transition-colors disabled:opacity-40"
+          >
+            <motion.div animate={corpusLoading ? { rotate: 360 } : { rotate: 0 }}
+              transition={corpusLoading ? { duration: 1, repeat: Infinity, ease: "linear" } : {}}>
+              <RefreshCw className="h-4 w-4" />
+            </motion.div>
+          </button>
+        </div>
+        <GlassPanel className="divide-y divide-surface/30">
+          {corpusLoading && !corpusFiles ? (
+            <div className="p-5 flex items-center justify-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="h-5 w-5 border-2 border-flow/40 border-t-flow rounded-full"
+              />
+            </div>
+          ) : corpusFiles && corpusFiles.length === 0 ? (
+            <p className="p-5 text-sm text-foam/35 text-center">No files in corpus yet.</p>
+          ) : (corpusFiles ?? []).map(f => (
+            <div key={f.path} className="flex items-center gap-3 px-5 py-3">
+              <FileText className="h-4 w-4 text-flow/60 shrink-0" />
+              <span className="flex-1 text-sm text-foam/80 truncate font-mono">{f.name}</span>
+              <button
+                onClick={() => openFile(f)}
+                className="text-foam/30 hover:text-flow transition-colors"
+                title="View content"
+              >
+                <Eye className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </GlassPanel>
+      </div>
     </div>
+
+    {/* ── File Content Modal ── */}
+    <AnimatePresence>
+      {(viewingFile || viewLoading) && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+        >
+          <div
+            className="absolute inset-0 bg-deep/90 backdrop-blur-xl"
+            onClick={() => setViewingFile(null)}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.93, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.93, y: 20 }}
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            className="relative z-10 w-full max-w-2xl glass rounded-2xl border border-flow/20 shadow-[0_0_60px_rgba(56,189,248,0.1)] p-6 space-y-4"
+          >
+            <button
+              onClick={() => setViewingFile(null)}
+              className="absolute top-4 right-4 text-foam/30 hover:text-foam/70 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            {viewLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="h-6 w-6 border-2 border-flow/40 border-t-flow rounded-full"
+                />
+              </div>
+            ) : viewingFile && (
+              <>
+                <div>
+                  <p className="text-xs font-semibold tracking-widest uppercase text-foam/40 mb-1">File Content</p>
+                  <p className="text-foam font-mono text-sm truncate">{viewingFile.path}</p>
+                </div>
+                <pre className="text-foam/70 text-xs font-mono whitespace-pre-wrap bg-deep/40 rounded-xl p-4 max-h-[60vh] overflow-y-auto leading-relaxed">
+                  {viewingFile.content || "(empty)"}
+                </pre>
+              </>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
 
     {/* ── Toxic Water Overlay ── */}
     <AnimatePresence>

@@ -78,3 +78,8 @@ export interface FileEntry {
 export interface FilesResponse {
   files: FileEntry[];
 }
+
+export interface FileContentResponse {
+  path: string;
+  content: string;
+}

@@ -1,4 +1,4 @@
-import type { IngestResponse, AuditReport, SearchResponse, FilesResponse } from "./types";
+import type { IngestResponse, AuditReport, SearchResponse, FilesResponse, FileContentResponse } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
 
@@ -34,4 +34,5 @@ export const ingestFile = (file: File) => {
 export const ingestUrl  = (url: string)              => postJson<IngestResponse>("/api/ingest", { url });
 export const audit      = (query: string)             => postJson<AuditReport>("/api/audit", { query });
 export const search     = (query: string, limit = 10) => postJson<SearchResponse>("/api/search", { query, limit });
-export const listFiles  = ()                           => getJson<FilesResponse>("/api/files");
+export const listFiles      = ()             => getJson<FilesResponse>("/api/files");
+export const getFileContent = (path: string) => getJson<FileContentResponse>(`/api/files/content?path=${encodeURIComponent(path)}`);
