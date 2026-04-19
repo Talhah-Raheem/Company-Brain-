@@ -18,17 +18,18 @@ type Tab    = "file" | "url";
 type Status = "idle" | "scanning" | "done" | "error";
 
 const patternIcons: Record<string, typeof CheckCircle2> = {
-  SSN:     Biohazard,
-  Email:   AlertTriangle,
-  Phone:   AlertTriangle,
-  API_Key: Biohazard,
-  default: AlertTriangle,
+  ssn:         Biohazard,
+  email:       AlertTriangle,
+  credit_card: Biohazard,
+  phone:       AlertTriangle,
+  api_key:     Biohazard,
+  aws_key:     Biohazard,
 };
 
 const floodColors = {
-  Clean: "bg-clarity",
-  Murky: "bg-murky",
-  Toxic: "bg-toxic",
+  clean: "bg-clarity",
+  murky: "bg-murky",
+  toxic: "bg-toxic",
 };
 
 export default function IngestPage() {
@@ -235,7 +236,7 @@ export default function IngestPage() {
               />
 
               <GlassPanel
-                glow={result.report.severity === "Clean" ? "clarity" : result.report.severity === "Murky" ? "murky" : "toxic"}
+                glow={result.report.severity === "clean" ? "clarity" : result.report.severity === "murky" ? "murky" : "toxic"}
                 className="p-7 space-y-6 bg-transparent border-0 shadow-none"
               >
                 {/* Summary row */}
@@ -253,19 +254,19 @@ export default function IngestPage() {
                 </div>
 
                 {/* Matches */}
-                {result.report.matches.length > 0 ? (
+                {result.report.match_count > 0 ? (
                   <div className="space-y-2">
                     <p className="text-xs font-semibold tracking-widest uppercase text-foam/35">
-                      {result.report.matches.length} Pollution{result.report.matches.length > 1 ? " Signals" : " Signal"} Found
+                      {result.report.match_count} Pollution{result.report.match_count > 1 ? " Signals" : " Signal"} Found
                     </p>
                     <FlowLayout className="space-y-2">
                       {result.report.matches.map((m, i) => {
-                        const Icon = patternIcons[m.pattern_type] ?? patternIcons.default;
+                        const Icon = patternIcons[m.pattern_type] ?? AlertTriangle;
                         return (
                           <div key={i} className="glass-elevated rounded-xl px-4 py-3 flex items-start gap-3">
                             <Icon className="h-4 w-4 text-murky mt-0.5 shrink-0" />
                             <div>
-                              <span className="text-xs font-bold text-murky uppercase tracking-wide">{m.pattern_type}</span>
+                              <span className="text-xs font-bold text-murky uppercase tracking-wide">{m.pattern_type.replace(/_/g, " ")}</span>
                               <p className="text-xs text-foam/50 mt-0.5 font-mono">{m.snippet}</p>
                             </div>
                           </div>

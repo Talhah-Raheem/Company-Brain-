@@ -13,10 +13,10 @@ import type { SearchResultItem, ClarityLabel, PollutionSeverity } from "@/src/li
 type Status = "idle" | "searching" | "done" | "error";
 
 const clarityToSeverity: Record<ClarityLabel, PollutionSeverity> = {
-  crystal: "Clean",
-  clear:   "Clean",
-  murky:   "Murky",
-  toxic:   "Toxic",
+  crystal: "clean",
+  clear:   "clean",
+  murky:   "murky",
+  toxic:   "toxic",
 };
 
 const clarityBarColor: Record<ClarityLabel, string> = {

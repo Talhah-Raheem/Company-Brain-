@@ -1,21 +1,32 @@
 // ── Pollution / Ingest ───────────────────────────────────────────────────────
 
-export type PollutionSeverity = "Clean" | "Murky" | "Toxic";
+// Matches Rust: #[serde(rename_all = "snake_case")] on Severity enum
+export type PollutionSeverity = "clean" | "murky" | "toxic";
+
+// Matches Rust: #[serde(rename_all = "snake_case")] on PatternType enum
+export type PatternType =
+  | "ssn"
+  | "email"
+  | "credit_card"
+  | "phone"
+  | "api_key"
+  | "aws_key";
 
 export interface PollutionMatch {
-  pattern_type: string; // e.g. "SSN", "Email", "API_Key"
-  snippet: string;      // redacted excerpt
+  pattern_type: PatternType;
+  snippet: string;       // already redacted by backend
   char_offset: number;
 }
 
 export interface PollutionReport {
   matches: PollutionMatch[];
   severity: PollutionSeverity;
+  match_count: number;   // backend includes this as a convenience field
 }
 
 export interface IngestResponse {
   report: PollutionReport;
-  forwarded: boolean;     // true = document reached Human Delta
+  forwarded: boolean;
   document_id?: string;
   index_id?: string;
 }
@@ -48,8 +59,8 @@ export type ClarityLabel = "crystal" | "clear" | "murky" | "toxic";
 export interface SearchResultItem {
   content: string;
   source: string;
-  similarity: number;     // 0–1
-  clarity_score: number;  // 0–100
+  similarity: number;     // 0–1, from HD score field
+  clarity_score: number;  // 0–100, computed by backend
   clarity_label: ClarityLabel;
 }
 

@@ -5,19 +5,19 @@ import { Droplets, AlertTriangle, Biohazard } from "lucide-react";
 import type { PollutionSeverity } from "@/src/lib/types";
 
 const config = {
-  Clean: {
+  clean: {
     label: "Crystal Clear",
     icon:  Droplets,
     base:  "bg-clarity/15 text-clarity border-clarity/30",
     glow:  "0 0 14px rgba(6,182,212,0.35)",
   },
-  Murky: {
+  murky: {
     label: "Murky Waters",
     icon:  AlertTriangle,
     base:  "bg-murky/15 text-murky border-murky/30",
     glow:  "0 0 14px rgba(245,158,11,0.35)",
   },
-  Toxic: {
+  toxic: {
     label: "Toxic",
     icon:  Biohazard,
     base:  "bg-toxic/15 text-toxic border-toxic/30",
