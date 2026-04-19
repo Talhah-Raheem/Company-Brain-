@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, response::Json};
 
 use crate::{
-    models::{ApiError, ResolveRequest, ResolveResponse},
+    models::{ApiError, DeleteGovernanceRequest, ResolveRequest, ResolveResponse},
     AppState,
 };
 
@@ -42,6 +42,23 @@ fn remove_section(content: &str, term: &str) -> String {
     }
 
     out.join("\n")
+}
+
+pub async fn delete_governance_handler(
+    State(state): State<AppState>,
+    Json(req): Json<DeleteGovernanceRequest>,
+) -> ApiResult<ResolveResponse> {
+    let existing = state.hd.fs_read(CANONICAL_PATH).await.unwrap_or_default();
+    let updated = remove_section(&existing, &req.term);
+    state
+        .hd
+        .fs_write(CANONICAL_PATH, &updated)
+        .await
+        .map_err(|e| err(StatusCode::BAD_GATEWAY, e))?;
+    Ok(Json(ResolveResponse {
+        success: true,
+        message: format!("Removed canonical declaration for \"{}\"", req.term),
+    }))
 }
 
 pub async fn resolve_handler(

@@ -230,6 +230,11 @@ pub struct ResolveResponse {
     pub message: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct DeleteGovernanceRequest {
+    pub term: String,
+}
+
 // ── API response envelope ─────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]

@@ -37,7 +37,13 @@ export const search     = (query: string, limit = 10) => postJson<SearchResponse
 export const listFiles      = ()                        => getJson<FilesResponse>("/api/files");
 export const resolve        = (req: ResolveRequest)     => postJson<ResolveResponse>("/api/audit/resolve", req);
 export const getFileContent = (path: string) => getJson<FileContentResponse>(`/api/files/content?path=${encodeURIComponent(path)}`);
-export const getGovernance  = ()              => getJson<GovernanceResponse>("/api/governance");
+export const getGovernance    = ()              => getJson<GovernanceResponse>("/api/governance");
+export const deleteGovernance = (term: string) =>
+  fetch(`${BASE}/api/governance`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ term }),
+  }).then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); });
 export const deleteFile     = (path: string)  => {
   const res = fetch(`${BASE}/api/files?path=${encodeURIComponent(path)}`, { method: "DELETE" });
   return res.then(r => { if (!r.ok) throw new Error(`${r.status}`); });

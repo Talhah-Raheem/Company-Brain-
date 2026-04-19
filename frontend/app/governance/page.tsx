@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, X, Scale, ArrowRight } from "lucide-react";
+import { ShieldCheck, X, Scale, ArrowRight, Trash2 } from "lucide-react";
 import GlassPanel from "@/src/components/water/GlassPanel";
 import FlowLayout from "@/src/components/water/FlowLayout";
 import RippleButton from "@/src/components/water/RippleButton";
-import { getGovernance } from "@/src/lib/api";
+import { getGovernance, deleteGovernance } from "@/src/lib/api";
 import type { GovernanceEntry } from "@/src/lib/types";
 
 type Status = "loading" | "done" | "error";
@@ -42,12 +42,20 @@ function SkeletonCard({ delay = 0 }: { delay?: number }) {
   );
 }
 
-function EntryCard({ entry }: { entry: GovernanceEntry }) {
+function EntryCard({ entry, onDelete, isDeleting }: { entry: GovernanceEntry; onDelete: () => void; isDeleting: boolean }) {
   return (
     <GlassPanel glow="clarity" className="p-6 space-y-5">
       <div className="flex items-center gap-2">
         <Scale className="h-4 w-4 text-flow/70" />
         <h3 className="text-lg font-bold tracking-tight text-foam">{entry.term}</h3>
+        <button
+          onClick={onDelete}
+          disabled={isDeleting}
+          className="ml-auto p-1.5 rounded-lg hover:bg-toxic/10 text-foam/20 hover:text-toxic transition-colors disabled:opacity-40"
+          title="Delete declaration"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -72,9 +80,20 @@ function EntryCard({ entry }: { entry: GovernanceEntry }) {
 }
 
 export default function GovernancePage() {
-  const [status,  setStatus]  = useState<Status>("loading");
-  const [entries, setEntries] = useState<GovernanceEntry[]>([]);
-  const [error,   setError]   = useState("");
+  const [status,       setStatus]       = useState<Status>("loading");
+  const [entries,      setEntries]      = useState<GovernanceEntry[]>([]);
+  const [error,        setError]        = useState("");
+  const [deletingTerm, setDeletingTerm] = useState<string | null>(null);
+
+  const handleDelete = async (term: string) => {
+    setDeletingTerm(term);
+    try {
+      await deleteGovernance(term);
+      setEntries(prev => prev.filter(e => e.term !== term));
+    } finally {
+      setDeletingTerm(null);
+    }
+  };
 
   useEffect(() => {
     getGovernance()
@@ -121,7 +140,9 @@ export default function GovernancePage() {
                 {entries.length} Canonical Declaration{entries.length !== 1 ? "s" : ""}
               </p>
               <FlowLayout className="space-y-4">
-                {entries.map((e, i) => <EntryCard key={i} entry={e} />)}
+                {entries.map((e, i) => (
+                  <EntryCard key={i} entry={e} onDelete={() => handleDelete(e.term)} isDeleting={deletingTerm === e.term} />
+                ))}
               </FlowLayout>
             </>
           ) : (

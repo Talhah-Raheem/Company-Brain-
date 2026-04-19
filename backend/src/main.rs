@@ -48,7 +48,7 @@ async fn main() {
         .route("/api/search", post(api::search::search_handler))
         .route("/api/files", get(api::files::list_files_handler).delete(api::files::delete_file_handler))
         .route("/api/files/content", get(api::files::file_content_handler))
-        .route("/api/governance", get(api::governance::governance_handler))
+        .route("/api/governance", get(api::governance::governance_handler).delete(api::resolve::delete_governance_handler))
         .with_state(state)
         .layer(cors);
 
