@@ -5,7 +5,7 @@ mod pollution;
 
 use std::sync::Arc;
 
-use axum::{extract::State, http::StatusCode, response::Json, routing::get, Router};
+use axum::{extract::State, http::StatusCode, response::Json, routing::{get, post}, Router};
 use dotenvy::dotenv;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -42,6 +42,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/health", get(health))
+        .route("/api/ingest", post(api::ingest::ingest_handler))
         .with_state(state)
         .layer(cors);
 

@@ -101,7 +101,6 @@ pub struct PollutionMatch {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
 pub enum Severity {
     /// No matches found
     Clean,
@@ -116,6 +115,26 @@ pub struct PollutionReport {
     pub matches: Vec<PollutionMatch>,
     pub severity: Severity,
     pub match_count: usize,
+}
+
+// ── Ingest response ───────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize)]
+pub struct IngestResponse {
+    pub report: PollutionReport,
+    /// true if the document was forwarded to Human Delta
+    pub forwarded: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub document_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub index_id: Option<String>,
+}
+
+// ── URL ingest request ────────────────────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+pub struct UrlIngestRequest {
+    pub url: String,
 }
 
 // ── API response envelope ─────────────────────────────────────────────────────
