@@ -40,7 +40,12 @@ pub async fn search_handler(
             let (clarity_score, clarity_label) = score_to_clarity(score);
             SearchResultItem {
                 content: hit.content,
-                source: hit.source.unwrap_or_else(|| "unknown".to_string()),
+                source: hit.extra.get("page_title")
+                    .and_then(|v| v.as_str())
+                    .filter(|s| !s.is_empty())
+                    .or_else(|| hit.source.as_deref())
+                    .unwrap_or("unknown")
+                    .to_string(),
                 similarity: score,
                 clarity_score,
                 clarity_label,
