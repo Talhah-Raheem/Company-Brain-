@@ -168,17 +168,16 @@ Company-Brain-/
 
 ---
 
-### Phase 4 — Audit / Diver Mode Route
-> Owner: 🔵 Backend only (frontend UI is ✅ done)  
-> **Do not touch:** `frontend/` directory
+### Phase 4 — Audit / Diver Mode Route ✅ COMPLETE
+> Owner: 🔵 Backend
 
-- [ ] Register `POST /api/audit` in `main.rs` router
-- [ ] Handler in `api/audit.rs`:
-  - Accept `{ query: String }`
-  - Call `hd.fs(FsRequest { command: Grep, pattern: query })` 
-  - Cluster grep results by source document → `Vec<DocCluster>`
-  - Compare snippets across clusters — flag diverging facts as `Vec<Contradiction>`
-  - Return `AuditReport { query, clusters, contradictions }`
+- [x] `POST /api/audit` registered in `main.rs`
+- [x] Accepts `{ query: String }`, calls HD `/v1/search` (not `/v1/fs` — uploaded docs live in search index only)
+- [x] Fixed HD API field names: `cmd` (not `command`), `text` (not `content`) in SearchResult
+- [x] Groups results by `page_title` → `Vec<DocCluster>`, filters by score ≥ 0.6
+- [x] Contradiction detector: Jaccard word-set similarity < 0.4 = contradiction
+- [x] Returns `AuditReport { query, clusters, contradictions }`
+- [x] Live tested: "refund policy" → 2 clusters (30-day vs 7-day policy), 1 contradiction detected
 
 ---
 

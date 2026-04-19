@@ -43,6 +43,7 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(health))
         .route("/api/ingest", post(api::ingest::ingest_handler))
+        .route("/api/audit", post(api::audit::audit_handler))
         .with_state(state)
         .layer(cors);
 

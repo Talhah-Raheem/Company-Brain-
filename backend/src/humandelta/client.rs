@@ -1,7 +1,7 @@
 use reqwest::{multipart, Client};
 use thiserror::Error;
 
-use crate::models::{FsRequest, FsResponse, IndexRequest, IndexResponse, SearchRequest, SearchResponse};
+use crate::models::{FsRequest, IndexRequest, IndexResponse, SearchRequest, SearchResponse};
 
 #[derive(Error, Debug)]
 pub enum HdError {
@@ -91,12 +91,25 @@ impl HumanDeltaClient {
     }
 
     /// POST /v1/fs — shell-style FS access (ls, tree, cat, grep)
-    pub async fn fs(&self, req: &FsRequest) -> Result<FsResponse, HdError> {
+    pub async fn fs(&self, req: &FsRequest) -> Result<serde_json::Value, HdError> {
         let resp = self
             .client
             .post(format!("{}/v1/fs", self.base_url))
             .header("Authorization", self.auth_header())
             .json(req)
+            .send()
+            .await?;
+        Ok(self.check_response(resp).await?.json().await?)
+    }
+
+    /// POST /v1/fs with a raw shell command string e.g. "grep refund policy"
+    pub async fn fs_cmd(&self, cmd: &str) -> Result<serde_json::Value, HdError> {
+        let body = serde_json::json!({ "cmd": cmd });
+        let resp = self
+            .client
+            .post(format!("{}/v1/fs", self.base_url))
+            .header("Authorization", self.auth_header())
+            .json(&body)
             .send()
             .await?;
         Ok(self.check_response(resp).await?.json().await?)

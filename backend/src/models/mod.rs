@@ -23,6 +23,7 @@ pub struct SearchRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SearchResult {
+    #[serde(rename = "text", alias = "content")]
     pub content: String,
     pub source: Option<String>,
     pub score: Option<f64>,
@@ -39,11 +40,12 @@ pub struct SearchResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FsRequest {
+    #[serde(rename = "cmd")]
     pub command: FsCommand,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub pattern: Option<String>,
+    pub query: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -135,6 +137,35 @@ pub struct IngestResponse {
 #[derive(Debug, Deserialize)]
 pub struct UrlIngestRequest {
     pub url: String,
+}
+
+// ── Audit types ───────────────────────────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+pub struct AuditRequest {
+    pub query: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DocCluster {
+    pub source: String,
+    pub snippets: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct Contradiction {
+    pub term: String,
+    pub source_a: String,
+    pub source_b: String,
+    pub snippet_a: String,
+    pub snippet_b: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AuditReport {
+    pub query: String,
+    pub clusters: Vec<DocCluster>,
+    pub contradictions: Vec<Contradiction>,
 }
 
 // ── API response envelope ─────────────────────────────────────────────────────
