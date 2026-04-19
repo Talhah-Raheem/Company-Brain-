@@ -1,0 +1,55 @@
+THE SAFETY DIVER — NEXT DIRECTION
+==================================
+
+WHAT WE HAVE
+------------
+- Ingest: scans files for PII/secrets before uploading to Human Delta. Blocks toxic files.
+- Audit: finds contradictions between documents using vector search + word similarity.
+- Search: queries the corpus and returns results with a clarity score.
+- All 3 backend routes working and tested against the live Human Delta API.
+
+THE PIVOT
+---------
+The clarity score (search) is weak — cosine similarity ≠ trustworthiness.
+The real story is: DETECT → RESOLVE → GROUND.
+
+The feature that completes this and impresses judges:
+
+  "Mark as Canonical"
+  After the audit surfaces a contradiction (e.g. refund policy: 30 days vs 7 days),
+  the user picks which document is the source of truth.
+  We write a canonical declaration to /agent/ in the HD filesystem.
+  AI agents reading the corpus find this record and know which version to trust.
+  This turns the app from a "visualizer" into an actual governance tool.
+
+WHAT NEEDS TO BE BUILT
+-----------------------
+Backend (30 min):
+  - POST /api/audit/resolve — takes { term, canonical_source, rejected_source }
+  - Writes/appends to /agent/canonical-sources.md in HD filesystem
+  - Returns confirmation
+
+Frontend (20 min):
+  - Add "Trust [source A]" / "Trust [source B]" buttons to each contradiction card
+  - On success: show green "Resolved — [source] is now canonical" badge
+  - This is the demo's money moment
+
+DEMO FLOW (after this is built)
+--------------------------------
+1. Upload refund_policy_v1.md and refund_policy_v2.md via Ingest
+2. Upload toxic_leaked_config.md — show it getting BLOCKED
+3. Go to Audit, search "refund policy" — contradiction surfaces
+4. Click "Trust v2" — resolution written to corpus
+5. Search "refund policy" — show v2 comes back as the top result
+6. Open HD filesystem — show /agent/canonical-sources.md exists
+
+WHAT TO DROP / DEPRIORITIZE
+-----------------------------
+- Clarity score label rebranding (not worth the time)
+- Search result filtering by score (minor UX, do last)
+- URL crawl (HD only supports website type, limited demo value)
+
+PITCH ANGLE
+-----------
+"Before you connect your company's docs to an AI agent, run The Safety Diver.
+It removes poison, surfaces conflicts, and lets your team decide what the AI should trust."
