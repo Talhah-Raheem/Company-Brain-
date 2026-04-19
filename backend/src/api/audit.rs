@@ -53,7 +53,12 @@ fn build_clusters(results: &[crate::models::SearchResult]) -> Vec<DocCluster> {
             .unwrap_or("unknown")
             .to_string();
 
-        let snippet = result.content.trim().to_string();
+        let raw = result.content.trim();
+        let snippet = if raw.chars().count() > 200 {
+            format!("{}…", raw.chars().take(200).collect::<String>())
+        } else {
+            raw.to_string()
+        };
         if !snippet.is_empty() {
             map.entry(source).or_default().push(snippet);
         }
