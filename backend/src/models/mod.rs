@@ -60,6 +60,64 @@ pub struct FsResponse {
     pub output: serde_json::Value,
 }
 
+// ── Pollution types ───────────────────────────────────────────────────────────
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum PatternType {
+    Ssn,
+    Email,
+    CreditCard,
+    Phone,
+    /// Generic API key or secret token — always forces Toxic severity
+    ApiKey,
+    /// AWS access key ID — always forces Toxic severity
+    AwsKey,
+}
+
+impl PatternType {
+    pub fn is_secret(&self) -> bool {
+        matches!(self, PatternType::ApiKey | PatternType::AwsKey)
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            PatternType::Ssn => "Social Security Number",
+            PatternType::Email => "Email Address",
+            PatternType::CreditCard => "Credit Card Number",
+            PatternType::Phone => "Phone Number",
+            PatternType::ApiKey => "API Key / Secret",
+            PatternType::AwsKey => "AWS Access Key",
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PollutionMatch {
+    pub pattern_type: PatternType,
+    /// Redacted representation — never contains the raw sensitive value
+    pub snippet: String,
+    pub char_offset: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Severity {
+    /// No matches found
+    Clean,
+    /// 1–2 PII matches, no secrets
+    Murky,
+    /// 3+ matches OR any secret key found
+    Toxic,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PollutionReport {
+    pub matches: Vec<PollutionMatch>,
+    pub severity: Severity,
+    pub match_count: usize,
+}
+
 // ── API response envelope ─────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]
