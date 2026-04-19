@@ -10,6 +10,7 @@ import GlassPanel from "@/src/components/water/GlassPanel";
 import WaterClarityBadge from "@/src/components/water/WaterClarityBadge";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
+import CoralDivider from "@/src/components/water/CoralDivider";
 import { ingestFile, ingestUrl, listFiles, getFileContent, deleteFile } from "@/src/lib/api";
 import type { IngestResponse, FileEntry, FileContentResponse } from "@/src/lib/types";
 import { cn } from "@/src/lib/utils";
@@ -120,12 +121,18 @@ export default function IngestPage() {
 
   return (
     <>
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="max-w-2xl mx-auto space-y-10">
 
       {/* ── Header ── */}
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foam">Purified Ingestion</h1>
-        <p className="mt-2 text-foam/50 text-sm">
+      <div className="space-y-5">
+        <div className="inline-flex items-center gap-2 eyebrow text-bioluminescent/80 border border-bioluminescent/20 rounded-full px-3.5 py-1 glass">
+          <Upload className="h-3 w-3" />
+          <span>I · Ingestion</span>
+        </div>
+        <h1 className="font-display font-normal text-5xl md:text-6xl leading-[0.98] tracking-tight text-foam">
+          Purified <span className="italic text-gradient-flow">Ingestion</span>
+        </h1>
+        <p className="font-display italic text-lg text-foam/55 max-w-xl leading-relaxed">
           Nothing enters the corpus without passing the pollution scan.
         </p>
       </div>
@@ -333,10 +340,12 @@ export default function IngestPage() {
         )}
       </AnimatePresence>
 
+      <CoralDivider label="The Corpus" />
+
       {/* ── Corpus ── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold tracking-widest uppercase text-foam/40">Corpus</h2>
+          <h2 className="eyebrow text-foam/40">Indexed files</h2>
           <button
             onClick={fetchCorpus}
             disabled={corpusLoading}

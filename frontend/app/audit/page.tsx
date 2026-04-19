@@ -6,42 +6,32 @@ import { ScanSearch, ArrowRight, BookOpen, Swords, ShieldCheck, Loader2 } from "
 import GlassPanel from "@/src/components/water/GlassPanel";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
+import WaveLoader from "@/src/components/water/WaveLoader";
+import CoralDivider from "@/src/components/water/CoralDivider";
 import { audit, resolve } from "@/src/lib/api";
 import type { AuditReport, Contradiction } from "@/src/lib/types";
 
 type ResolveStatus = "idle" | "resolving" | "resolved";
 
-function ShimmerBar({ width = "w-full", delay = 0 }: { width?: string; delay?: number }) {
-  return (
-    <div className={`relative h-3 rounded-full bg-surface/40 overflow-hidden ${width}`}>
-      <motion.div
-        className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-        animate={{ x: ["-100%", "300%"] }}
-        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay }}
-      />
-    </div>
-  );
-}
-
 function DivingSkeleton({ delay = 0 }: { delay?: number }) {
   return (
     <div className="rounded-2xl border border-toxic/15 bg-current/40 p-6 space-y-4">
-      <ShimmerBar width="w-1/3" delay={delay} />
+      <WaveLoader variant="toxic" width="w-1/3" delay={delay} />
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-surface/20 p-4 space-y-2">
-          <ShimmerBar width="w-2/3" delay={delay + 0.1} />
-          <ShimmerBar delay={delay + 0.15} />
-          <ShimmerBar width="w-5/6" delay={delay + 0.2} />
+          <WaveLoader width="w-2/3" delay={delay + 0.1} />
+          <WaveLoader delay={delay + 0.15} />
+          <WaveLoader width="w-5/6" delay={delay + 0.2} />
         </div>
         <div className="rounded-xl bg-surface/20 p-4 space-y-2">
-          <ShimmerBar width="w-2/3" delay={delay + 0.15} />
-          <ShimmerBar delay={delay + 0.2} />
-          <ShimmerBar width="w-5/6" delay={delay + 0.25} />
+          <WaveLoader width="w-2/3" delay={delay + 0.15} />
+          <WaveLoader delay={delay + 0.2} />
+          <WaveLoader width="w-5/6" delay={delay + 0.25} />
         </div>
       </div>
       <div className="flex gap-3">
-        <ShimmerBar width="w-32" delay={delay + 0.3} />
-        <ShimmerBar width="w-32" delay={delay + 0.35} />
+        <WaveLoader width="w-32" delay={delay + 0.3} />
+        <WaveLoader width="w-32" delay={delay + 0.35} />
       </div>
     </div>
   );
@@ -165,10 +155,16 @@ export default function AuditPage() {
     <div className="max-w-3xl mx-auto space-y-10">
 
       {/* ── Header ── */}
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foam">Diver Mode</h1>
-        <p className="mt-2 text-foam/50 text-sm">
-          Enter a term or topic. The diver will search your corpus and surface every contradiction.
+      <div className="space-y-5">
+        <div className="inline-flex items-center gap-2 eyebrow text-flow/80 border border-flow/25 rounded-full px-3.5 py-1 glass">
+          <ScanSearch className="h-3 w-3" />
+          <span>II · Audit</span>
+        </div>
+        <h1 className="font-display font-normal text-5xl md:text-6xl leading-[0.98] tracking-tight text-foam">
+          Diver <span className="italic text-gradient-flow">Mode</span>
+        </h1>
+        <p className="font-display italic text-lg text-foam/55 max-w-xl leading-relaxed">
+          Enter a term. The diver searches your corpus and surfaces every contradiction.
         </p>
       </div>
 
@@ -229,6 +225,7 @@ export default function AuditPage() {
             transition={{ duration: 0.45 }}
             className="space-y-10"
           >
+            <CoralDivider label={`Findings for “${report.query}”`} />
             {/* Contradictions */}
             {report.contradictions.length > 0 ? (
               <section className="space-y-4">

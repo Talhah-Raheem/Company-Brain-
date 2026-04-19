@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ExternalLink, Droplets, AlertTriangle, Biohazard, Sparkles, FileText, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Search, ExternalLink, Droplets, AlertTriangle, Biohazard, Sparkles, FileText, ShieldCheck, ShieldAlert, LayoutDashboard } from "lucide-react";
 import GlassPanel from "@/src/components/water/GlassPanel";
 import WaterClarityBadge from "@/src/components/water/WaterClarityBadge";
 import RippleButton from "@/src/components/water/RippleButton";
 import FlowLayout from "@/src/components/water/FlowLayout";
+import WaveLoader from "@/src/components/water/WaveLoader";
+import CoralDivider from "@/src/components/water/CoralDivider";
 import { search, listFiles } from "@/src/lib/api";
 import type { SearchResultItem, ClarityLabel, PollutionSeverity, FileEntry, GovernanceTag } from "@/src/lib/types";
 
@@ -33,30 +35,12 @@ const clarityIcons = {
   toxic:   Biohazard,
 };
 
-function SkeletonCard() {
+function SkeletonCard({ delay = 0 }: { delay?: number }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-current/40 p-6 space-y-4 overflow-hidden">
-      <div className="relative h-3 rounded-full bg-surface/40 overflow-hidden w-3/4">
-        <motion.div
-          className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-          animate={{ x: ["-100%", "300%"] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
-      <div className="relative h-3 rounded-full bg-surface/40 overflow-hidden w-full">
-        <motion.div
-          className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-          animate={{ x: ["-100%", "300%"] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
-        />
-      </div>
-      <div className="relative h-3 rounded-full bg-surface/40 overflow-hidden w-2/3">
-        <motion.div
-          className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-          animate={{ x: ["-100%", "300%"] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
-        />
-      </div>
+      <WaveLoader width="w-3/4" delay={delay} />
+      <WaveLoader width="w-full" delay={delay + 0.1} />
+      <WaveLoader width="w-2/3" delay={delay + 0.2} />
       <div className="h-1.5 rounded-full bg-surface/40 w-full mt-2" />
     </div>
   );
@@ -143,9 +127,6 @@ function FilesPanel({ files }: { files: FileEntry[] }) {
   if (files.length === 0) return null;
   return (
     <GlassPanel className="p-5 space-y-3">
-      <p className="text-xs font-semibold tracking-widest uppercase text-foam/30">
-        Knowledge Base — {files.length} file{files.length !== 1 ? "s" : ""} indexed
-      </p>
       <div className="flex flex-wrap gap-2">
         {files.map((f, i) => (
           <motion.div
@@ -191,15 +172,23 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-3xl mx-auto space-y-10">
 
       {/* ── Header ── */}
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-foam">Clarity Dashboard</h1>
-        <p className="mt-2 text-foam/50 text-sm">
-          Every result carries a Water Clarity Score — trust scores before you consume.
+      <div className="space-y-5">
+        <div className="inline-flex items-center gap-2 eyebrow text-murky/85 border border-murky/25 rounded-full px-3.5 py-1 glass">
+          <LayoutDashboard className="h-3 w-3" />
+          <span>III · Clarity</span>
+        </div>
+        <h1 className="font-display font-normal text-5xl md:text-6xl leading-[0.98] tracking-tight text-foam">
+          Clarity <span className="italic text-gradient-flow">Dashboard</span>
+        </h1>
+        <p className="font-display italic text-lg text-foam/55 max-w-xl leading-relaxed">
+          Every result carries a Water Clarity Score — trust before you consume.
         </p>
       </div>
+
+      <CoralDivider label="Knowledge Base" />
 
       {/* ── Indexed files ── */}
       <FilesPanel files={files} />
@@ -255,7 +244,7 @@ export default function SearchPage() {
           >
             {[0, 1, 2].map(i => (
               <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-                <SkeletonCard />
+                <SkeletonCard delay={i * 0.12} />
               </motion.div>
             ))}
           </motion.div>

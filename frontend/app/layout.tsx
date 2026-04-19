@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/src/components/NavBar";
+import PageTransition from "@/src/components/PageTransition";
+import DepthGauge from "@/src/components/DepthGauge";
 import WaterBackground from "@/src/components/water/WaterBackground";
 
 const inter = Inter({
@@ -28,8 +30,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-abyss text-foam antialiased font-sans">
         <WaterBackground />
         <NavBar />
+        <DepthGauge />
         <main className="max-w-6xl mx-auto px-6 py-12 relative">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </body>
     </html>
