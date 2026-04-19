@@ -49,7 +49,10 @@ impl HumanDeltaClient {
             .client
             .post(format!("{}/v1/indexes", self.base_url))
             .header("Authorization", self.auth_header())
-            .json(&IndexRequest { url: url.to_string() })
+            .json(&IndexRequest {
+                source_type: "website".to_string(),
+                website: crate::models::IndexWebsite { url: url.to_string() },
+            })
             .send()
             .await?;
         Ok(self.check_response(resp).await?.json().await?)

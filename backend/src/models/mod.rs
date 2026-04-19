@@ -3,8 +3,14 @@ use serde::{Deserialize, Serialize};
 // ── Human Delta passthrough types ─────────────────────────────────────────────
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct IndexRequest {
+pub struct IndexWebsite {
     pub url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct IndexRequest {
+    pub source_type: String,
+    pub website: IndexWebsite,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
