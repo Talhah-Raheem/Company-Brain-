@@ -8,7 +8,9 @@
     --font-display: Georgia, serif;
   }
   body {
-    background-color: #030812;
+    background:
+      radial-gradient(circle at top, rgba(255, 214, 157, 0.08), transparent 28%),
+      linear-gradient(180deg, #09111d 0%, #030812 100%);
     color: #e0f2fe;
     font-family: var(--font-sans);
   }
@@ -22,31 +24,33 @@
 @layer components {
   /* Core glassmorphism panel — sits over the animated water background */
   .glass {
-    background: rgba(13, 43, 78, 0.45);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(56, 189, 248, 0.12);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    background:
+      linear-gradient(180deg, rgba(9, 31, 58, 0.58), rgba(6, 20, 39, 0.38));
+    backdrop-filter: blur(16px) saturate(135%);
+    -webkit-backdrop-filter: blur(16px) saturate(135%);
+    border: 1px solid rgba(185, 225, 255, 0.14);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .glass-elevated {
-    background: rgba(26, 74, 122, 0.3);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(56, 189, 248, 0.22);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    background:
+      linear-gradient(160deg, rgba(24, 69, 111, 0.38), rgba(7, 17, 33, 0.32));
+    backdrop-filter: blur(20px) saturate(145%);
+    -webkit-backdrop-filter: blur(20px) saturate(145%);
+    border: 1px solid rgba(135, 209, 255, 0.2);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.58),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   /* Deep-water variant — more translucent, subtle saturation boost */
   .glass-deep {
-    background: linear-gradient(135deg, rgba(13, 43, 78, 0.5), rgba(10, 22, 40, 0.3));
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
-    border: 1px solid rgba(125, 211, 252, 0.1);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: linear-gradient(145deg, rgba(8, 28, 52, 0.62), rgba(5, 12, 24, 0.34));
+    backdrop-filter: blur(20px) saturate(148%);
+    -webkit-backdrop-filter: blur(20px) saturate(148%);
+    border: 1px solid rgba(173, 224, 255, 0.11);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.68),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .text-gradient-flow {
