@@ -106,4 +106,4 @@ All matches are **redacted** in reports — the raw sensitive value is never exp
 
 ---
 
-*Built in 32 hours at a hackathon. Every document that enters your knowledge base should be this clean.*
+*Built in 20 hours at a hackathon. Every document that enters your knowledge base should be this clean.*
